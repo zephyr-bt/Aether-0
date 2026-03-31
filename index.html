@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETHER-0 // FOX_ENGINE</title>
+    <title>AETHER-0 // FOX_MASTER_BUILD</title>
     <style>
         :root {
             --cyan: #00f2ff;
@@ -27,11 +27,12 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            transition: all 0.5s ease;
         }
 
         #terminal-wrapper {
-            width: 90vw;
-            height: 85vh;
+            width: 95vw;
+            height: 90vh;
             background: var(--glass);
             backdrop-filter: blur(16px);
             border: 1px solid var(--border);
@@ -39,10 +40,12 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,242,255,0.05);
             display: flex;
             flex-direction: column;
+            transition: all 0.5s ease;
+            z-index: 10;
         }
 
         #header {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             padding: 15px 25px;
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -51,6 +54,7 @@
             font-weight: bold;
             letter-spacing: 1px;
             text-shadow: 0 0 8px var(--cyan);
+            border-radius: 12px 12px 0 0;
         }
 
         #output {
@@ -61,14 +65,15 @@
             flex-direction: column;
             font-size: 1.05rem;
             line-height: 1.6;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
-        #output::-webkit-scrollbar { display: none; } /* Chrome */
+        #output::-webkit-scrollbar { display: none; }
 
         .line {
             margin-bottom: 8px;
             opacity: 0;
             animation: fadeIn 0.2s ease forwards;
+            word-wrap: break-word;
         }
 
         @keyframes fadeIn {
@@ -78,10 +83,11 @@
 
         .prompt-text { color: var(--cyan); font-weight: bold; margin-right: 10px; text-shadow: 0 0 5px var(--cyan); }
         .accent-text { color: var(--red); font-weight: bold; text-shadow: 0 0 5px var(--red); }
+        .success-text { color: #00ff41; font-weight: bold; text-shadow: 0 0 5px #00ff41; }
 
         #input-area {
             padding: 20px 25px;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             border-top: 1px solid rgba(255,255,255,0.05);
             display: flex;
             align-items: center;
@@ -104,7 +110,7 @@
 
     <div id="terminal-wrapper">
         <div id="header">
-            <span>AETHER-0 // FOX_ENGINE</span>
+            <span>AETHER-0 // GOD_MODE_ACTIVE</span>
             <span id="clock">00:00:00</span>
         </div>
         <div id="output"></div>
@@ -118,83 +124,102 @@
         const output = document.getElementById('output');
         const input = document.getElementById('cmd-input');
         const clock = document.getElementById('clock');
+        const wrapper = document.getElementById('terminal-wrapper');
 
         // Live Clock
-        setInterval(() => { clock.innerText = new Date().toLocaleTimeString(); }, 1000);
+        setInterval(() => { clock.innerText = new Date().toLocaleTimeString("ja-JP"); }, 1000);
 
         const AETHER = {
             history: [],
             historyIndex: -1,
 
             registry: {
-                "help": () => "PROTOCOLS: " + Object.keys(AETHER.registry).join(", "),
+                // --- 1. DOM DESTRUCTION (Real Web Page Hacks) ---
+                "edit_web": () => { document.designMode = "on"; return "<span class='success-text'>[+] DOM UNLOCKED: You can now type anywhere on this webpage.</span>"; },
+                "lock_web": () => { document.designMode = "off"; return "<span class='accent-text'>[-] DOM LOCKED.</span>"; },
+                "barrel_roll": () => { wrapper.style.transition = "transform 2s"; wrapper.style.transform = "rotate(360deg)"; setTimeout(()=>wrapper.style.transform="", 2000); return "DOING A BARREL ROLL."; },
+                "earthquake": () => { let i=0; const iv = setInterval(()=>{ wrapper.style.transform = `translate(${Math.random()*20-10}px, ${Math.random()*20-10}px)`; i++; if(i>20){clearInterval(iv); wrapper.style.transform="";}}, 50); return "<span class='accent-text'>SEISMIC ANOMALY DETECTED.</span>"; },
+                "invert": () => { document.body.style.filter = document.body.style.filter === "invert(1)" ? "" : "invert(1)"; return "POLARITY_TOGGLED."; },
+                "disco": () => { window.discoIv = setInterval(()=> document.body.style.filter = `hue-rotate(${Math.random()*360}deg)`, 100); return "Rave protocol active. Use 'stop_disco' to halt."; },
+                "stop_disco": () => { clearInterval(window.discoIv); document.body.style.filter = ""; return "RAVE_HALTED."; },
+                "hide_cursor": () => { document.body.style.cursor = "none"; return "STEALTH_CURSOR_ACTIVE."; },
+                "show_cursor": () => { document.body.style.cursor = "default"; return "CURSOR_RESTORED."; },
+                "font_bomb": () => { document.body.style.fontFamily = "Comic Sans MS, Papyrus, impact"; return "TYPOGRAPHY_CORRUPTED."; },
+                "tilt": () => { wrapper.style.transform = "skew(5deg, 5deg)"; return "GRAVITY_ALTERED."; },
+                "untilt": () => { wrapper.style.transform = "none"; return "GRAVITY_RESTORED."; },
+
+                // --- 2. HARDWARE & OS CONTROL (Real Device APIs) ---
+                "battery": async () => { try { const b = await navigator.getBattery(); return `BATTERY: ${b.level*100}% | CHARGING: ${b.charging}`; } catch(e) { return "<span class='accent-text'>HARDWARE_LOCKED</span>"; } },
+                "vibrate": () => { navigator.vibrate([200, 100, 200, 100, 500]); return "HAPTIC_MOTORS_ENGAGED."; },
+                "voice": (msg) => { const u = new SpeechSynthesisUtterance(msg || "Super star override protocol accepted."); window.speechSynthesis.speak(u); return "TTS_ONLINE."; },
+                "cores": () => `CPU_LOGICAL_CORES: ${navigator.hardwareConcurrency || 'UNKNOWN'}`,
+                "memory": () => `RAM_HEAP_LIMIT: ${performance.memory ? performance.memory.jsHeapSizeLimit / 1048576 + ' MB' : 'DENIED'}`,
+                "platform": () => `OS_USER_AGENT: ${navigator.userAgent}`,
+                "clip_read": async () => { try { const txt = await navigator.clipboard.readText(); return `CLIPBOARD_CONTENTS: ${txt}`; } catch(e) { return "<span class='accent-text'>CLIPBOARD_DENIED</span>"; } },
+                "clip_write": async (txt) => { try { await navigator.clipboard.writeText(txt); return "<span class='success-text'>DATA_INJECTED_TO_CLIPBOARD.</span>"; } catch(e) { return "<span class='accent-text'>INJECTION_FAILED</span>"; } },
+                "network": () => { const c = navigator.connection; return c ? `CONNECTION: ${c.effectiveType} | DOWNLINK: ${c.downlink}Mbps` : "NET_API_UNSUPPORTED"; },
+
+                // --- 3. LIVE EXTERNAL DATA HEISTS (No API Keys Needed) ---
+                "iss_loc": async () => { const r = await fetch("http://api.open-notify.org/iss-now.json"); const d = await r.json(); return `🛰️ ISS_COORDS: LAT ${d.iss_position.latitude}, LON ${d.iss_position.longitude}`; },
+                "crypto_btc": async () => { const r = await fetch("https://api.coindesk.com/v1/bpi/currentprice.json"); const d = await r.json(); return `🪙 BTC_LIVE: $${d.bpi.USD.rate}`; },
+                "anime_quote": async () => { const r = await fetch("https://animechan.xyz/api/random"); const d = await r.json(); return `🗡️ ${d.character} (${d.anime}): "${d.quote}"`; },
+                "arise": () => { 
+                    document.body.style.background = "#050014"; 
+                    wrapper.style.borderColor = "#7b00ff";
+                    wrapper.style.boxShadow = "0 20px 50px rgba(0,0,0,0.9), inset 0 0 25px rgba(123, 0, 255, 0.3)";
+                    document.documentElement.style.setProperty('--cyan', '#b45cff');
+                    return "<span style='color:#b45cff; font-weight:bold; text-shadow: 0 0 8px #b45cff'>SHADOW_ARMY_AWAKENED. ARISE.</span>"; 
+                },
+                "pokemon": async (name) => { try { const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${name||'rayquaza'}`); const d = await r.json(); return `🐉 EVO_DATA: ${d.name.toUpperCase()} | TYPE: ${d.types[0].type.name} | HP: ${d.stats[0].base_stat}`; } catch(e){ return "<span class='accent-text'>ENTITY_NOT_FOUND</span>"; } },
+                "joke": async () => { const r = await fetch("https://official-joke-api.appspot.com/random_joke"); const d = await r.json(); return `🤡 ${d.setup} ... ${d.punchline}`; },
+                "bored": async () => { const r = await fetch("https://www.boredapi.com/api/activity"); const d = await r.json(); return `🎯 SUGGESTED_DIRECTIVE: ${d.activity}`; },
+                "fake_user": async () => { const r = await fetch("https://randomuser.me/api/"); const d = await r.json(); const u = d.results[0]; return `👤 IDENTITY_FORGED: ${u.name.first} ${u.name.last} | LOC: ${u.location.city}, ${u.location.country} | DOB: ${u.dob.age}`; },
+                "fact": async () => { const r = await fetch("https://uselessfacts.jsph.pl/random.json?language=en"); const d = await r.json(); return `🧠 DB_ENTRY: ${d.text}`; },
+
+                // --- 4. CRYPTOGRAPHY & MATH TOOLS ---
+                "uuid": () => self.crypto.randomUUID(),
+                "base64_enc": (txt) => btoa(txt),
+                "base64_dec": (txt) => atob(txt),
+                "hex_enc": (txt) => txt.split('').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(' '),
+                "url_enc": (txt) => encodeURIComponent(txt),
+                "url_dec": (txt) => decodeURIComponent(txt),
+                "calc": (eq) => { try { return eval(eq); } catch(e) { return "<span class='accent-text'>MATH_ERR</span>"; } },
+                "random_pass": () => "<span class='success-text'>" + Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10).toUpperCase() + "!@" + "</span>",
+                "timer": (sec) => { setTimeout(()=> alert("TIMER_SEQUENCE_COMPLETED"), sec*1000); return `COUNTDOWN_STARTED: ${sec} seconds.`; },
+
+                // --- 5. BROWSER TABS & NAVIGATION ---
+                "search": (q) => { window.open(`https://www.google.com/search?q=${q}`, '_blank'); return "SPAWNING_SEARCH_NODE..."; },
+                "youtube": (q) => { window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank'); return "ACCESSING_MEDIA_ARCHIVE..."; },
+                "github": () => { window.open(`https://github.com`, '_blank'); return "ACCESSING_CODE_REPOSITORIES..."; },
+                "reload": () => { location.reload(); return "REBOOTING..."; },
+                "fullscreen": () => { document.documentElement.requestFullscreen(); return "MAXIMIZING_VIEWPORT."; },
+                "exit_full": () => { document.exitFullscreen(); return "VIEWPORT_MINIMIZED."; },
+
+                // --- 6. ORIGINAL CORE PROTOCOLS ---
+                "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR | LOC: TOKYO_JPN | ORG: WEBLOOM INC.",
                 "clear": () => { output.innerHTML = ""; return ""; },
-                "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR | ORG: WebLooM Inc.",
-                "date": () => new Date().toLocaleString(),
+                "help": () => "AVAILABLE_PROTOCOLS:<br>" + Object.keys(AETHER.registry).join(", "),
                 
-                // Real Geolocation
-                "locate_ip": async (args) => {
-                    if (!args) return "<span class='accent-text'>ERR: TARGET_IP_REQUIRED.</span>";
-                    AETHER.printLine(`[>] TRACING ROUTE TO ${args}...`);
+                // --- 7. NOTIFICATIONS & TRACING ---
+                "locate_ip": async (ip) => {
+                    if (!ip) return "<span class='accent-text'>ERR: TARGET_IP_REQUIRED</span>";
                     try {
-                        const res = await fetch(`https://ipapi.co/${args}/json/`);
+                        const res = await fetch(`https://ipapi.co/${ip}/json/`);
                         const data = await res.json();
                         if (data.error) return `<span class='accent-text'>[!] TRACE_FAILED: ${data.reason}</span>`;
-                        return `<span class='prompt-text'>[+] TARGET ACQUIRED</span><br>IP: ${data.ip}<br>CITY: ${data.city}<br>ORG: ${data.org}`;
-                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR: ${err.message}</span>`; }
+                        return `<span class='success-text'>[+] TARGET ACQUIRED</span><br>IP: ${data.ip}<br>CITY: ${data.city}<br>ORG: ${data.org}`;
+                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
                 },
-
-                // Real Native Push (ntfy.sh)
                 "notify": async (args) => {
                     const parts = args.split(" ");
                     if (parts.length < 2) return "<span class='accent-text'>ERR: SYNTAX IS 'notify [topic] [message]'</span>";
                     const topic = parts[0]; 
                     const msg = parts.slice(1).join(" ");
-                    
-                    AETHER.printLine(`[>] BROADCASTING SECURE PUSH TO /${topic}...`);
                     try {
-                        const res = await fetch(`https://ntfy.sh/${topic}`, {
-                            method: 'POST', body: msg,
-                            headers: { 'Title': 'AETHER-0', 'Priority': 'default' }
-                        });
-                        if (res.ok) return `<span class='prompt-text'>[+] PUSH_DELIVERED.</span>`;
+                        const res = await fetch(`https://ntfy.sh/${topic}`, { method: 'POST', body: msg, headers: { 'Title': 'AETHER-0', 'Priority': 'default' } });
+                        if (res.ok) return `<span class='success-text'>[+] PUSH_DELIVERED TO /${topic}</span>`;
                         return `<span class='accent-text'>[!] PUSH_FAILED.</span>`;
-                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR: ${err.message}</span>`; }
-                },
-
-                "fortress": async (topic) => {
-                    if (!topic) return "<span class='accent-text'>ERR: TOPIC_REQUIRED.</span>";
-                    AETHER.printLine(`<span class='accent-text'>[!] INITIATING FORTRESS PROTOCOL ON /${topic}</span>`);
-                    try {
-                        const res = await fetch(`https://ntfy.sh/${topic}`, {
-                            method: 'POST', body: "SYSTEM COMPROMISE DETECTED. VERIFY HTTPS.",
-                            headers: { 'Title': '🚨 FORTRESS PROTOCOL 🚨', 'Priority': '5', 'Warning': 'yes' }
-                        });
-                        if (res.ok) return `<span class='accent-text'>[+] FORTRESS_ACTIVE: Max-priority alarm triggered.</span>`;
-                        return `<span class='accent-text'>[!] FORTRESS_FAILED.</span>`;
-                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR.</span>`; }
-                },
-
-                // Real DOM Manipulation
-                "shred": (selector) => {
-                    if (!selector) return "<span class='accent-text'>ERR: TARGET_SELECTOR_REQUIRED</span>";
-                    const el = document.querySelector(selector);
-                    if (el) {
-                        el.style.transition = "all 0.4s";
-                        el.style.transform = "scale(0)";
-                        setTimeout(() => el.remove(), 400);
-                        return `TARGET_DESTROYED: ${selector}`;
-                    }
-                    return "<span class='accent-text'>ERR: TARGET_NOT_FOUND</span>";
-                },
-
-                // Live REPL Engine
-                "exec": async (code) => {
-                    if (!code) return "<span class='accent-text'>ERR: CODE_REQUIRED</span>";
-                    try { 
-                        const result = await eval(`(async () => { return ${code} })()`); 
-                        return typeof result === 'object' ? JSON.stringify(result) : String(result);
-                    } catch (e) { return `<span class='accent-text'>[!] EXEC_ERR: ${e.message}</span>`; }
+                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
                 }
             },
 
@@ -254,11 +279,15 @@
             }
         });
 
+        // Focus keeper
+        document.addEventListener('click', () => input.focus());
+
         // Boot
         window.onload = () => {
-            AETHER.printLine("AETHER-0 LIVE API ENGINE [Fox Protocol Active]");
-            AETHER.printLine("UI: MODERN GLASSMORPHISM | ENGINE: ONLINE");
+            AETHER.printLine("AETHER-0 GOD MODE ENGINE [Fox Protocol Active]");
+            AETHER.printLine("ALL 50+ RAW PROTOCOLS UNLOCKED. TYPE 'help' TO INITIATE.");
         };
     </script>
 </body>
 </html>
+

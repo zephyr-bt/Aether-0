@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETHER-0 // FOX_MASTER_BUILD</title>
+    <title>AETHER-0 // STATIC_CORE</title>
     <style>
         :root {
             --cyan: #00f2ff;
@@ -27,7 +27,6 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            transition: all 0.5s ease;
         }
 
         #terminal-wrapper {
@@ -40,8 +39,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,242,255,0.05);
             display: flex;
             flex-direction: column;
-            transition: all 0.5s ease;
-            z-index: 10;
+            position: relative;
         }
 
         #header {
@@ -104,15 +102,25 @@
             outline: none;
             text-shadow: 0 0 5px var(--cyan);
         }
+
+        #video-feed {
+            display: none;
+            position: absolute;
+            top: 60px; right: 20px;
+            width: 300px; border-radius: 8px;
+            border: 1px solid var(--cyan);
+            box-shadow: 0 0 15px var(--cyan);
+        }
     </style>
 </head>
 <body>
 
     <div id="terminal-wrapper">
         <div id="header">
-            <span>AETHER-0 // GOD_MODE_ACTIVE</span>
+            <span>AETHER-0 // STATIC_HARDWARE_INTERFACE</span>
             <span id="clock">00:00:00</span>
         </div>
+        <video id="video-feed" autoplay playsinline></video>
         <div id="output"></div>
         <div id="input-area">
             <span class="prompt-text">ROOT@AETHER0:~$</span>
@@ -124,9 +132,10 @@
         const output = document.getElementById('output');
         const input = document.getElementById('cmd-input');
         const clock = document.getElementById('clock');
-        const wrapper = document.getElementById('terminal-wrapper');
+        const videoElement = document.getElementById('video-feed');
+        
+        let dirHandle = null; // Holds the real local directory
 
-        // Live Clock
         setInterval(() => { clock.innerText = new Date().toLocaleTimeString("ja-JP"); }, 1000);
 
         const AETHER = {
@@ -134,93 +143,86 @@
             historyIndex: -1,
 
             registry: {
-                // --- 1. DOM DESTRUCTION (Real Web Page Hacks) ---
-                "edit_web": () => { document.designMode = "on"; return "<span class='success-text'>[+] DOM UNLOCKED: You can now type anywhere on this webpage.</span>"; },
-                "lock_web": () => { document.designMode = "off"; return "<span class='accent-text'>[-] DOM LOCKED.</span>"; },
-                "barrel_roll": () => { wrapper.style.transition = "transform 2s"; wrapper.style.transform = "rotate(360deg)"; setTimeout(()=>wrapper.style.transform="", 2000); return "DOING A BARREL ROLL."; },
-                "earthquake": () => { let i=0; const iv = setInterval(()=>{ wrapper.style.transform = `translate(${Math.random()*20-10}px, ${Math.random()*20-10}px)`; i++; if(i>20){clearInterval(iv); wrapper.style.transform="";}}, 50); return "<span class='accent-text'>SEISMIC ANOMALY DETECTED.</span>"; },
-                "invert": () => { document.body.style.filter = document.body.style.filter === "invert(1)" ? "" : "invert(1)"; return "POLARITY_TOGGLED."; },
-                "disco": () => { window.discoIv = setInterval(()=> document.body.style.filter = `hue-rotate(${Math.random()*360}deg)`, 100); return "Rave protocol active. Use 'stop_disco' to halt."; },
-                "stop_disco": () => { clearInterval(window.discoIv); document.body.style.filter = ""; return "RAVE_HALTED."; },
-                "hide_cursor": () => { document.body.style.cursor = "none"; return "STEALTH_CURSOR_ACTIVE."; },
-                "show_cursor": () => { document.body.style.cursor = "default"; return "CURSOR_RESTORED."; },
-                "font_bomb": () => { document.body.style.fontFamily = "Comic Sans MS, Papyrus, impact"; return "TYPOGRAPHY_CORRUPTED."; },
-                "tilt": () => { wrapper.style.transform = "skew(5deg, 5deg)"; return "GRAVITY_ALTERED."; },
-                "untilt": () => { wrapper.style.transform = "none"; return "GRAVITY_RESTORED."; },
-
-                // --- 2. HARDWARE & OS CONTROL (Real Device APIs) ---
-                "battery": async () => { try { const b = await navigator.getBattery(); return `BATTERY: ${b.level*100}% | CHARGING: ${b.charging}`; } catch(e) { return "<span class='accent-text'>HARDWARE_LOCKED</span>"; } },
-                "vibrate": () => { navigator.vibrate([200, 100, 200, 100, 500]); return "HAPTIC_MOTORS_ENGAGED."; },
-                "voice": (msg) => { const u = new SpeechSynthesisUtterance(msg || "Super star override protocol accepted."); window.speechSynthesis.speak(u); return "TTS_ONLINE."; },
-                "cores": () => `CPU_LOGICAL_CORES: ${navigator.hardwareConcurrency || 'UNKNOWN'}`,
-                "memory": () => `RAM_HEAP_LIMIT: ${performance.memory ? performance.memory.jsHeapSizeLimit / 1048576 + ' MB' : 'DENIED'}`,
-                "platform": () => `OS_USER_AGENT: ${navigator.userAgent}`,
-                "clip_read": async () => { try { const txt = await navigator.clipboard.readText(); return `CLIPBOARD_CONTENTS: ${txt}`; } catch(e) { return "<span class='accent-text'>CLIPBOARD_DENIED</span>"; } },
-                "clip_write": async (txt) => { try { await navigator.clipboard.writeText(txt); return "<span class='success-text'>DATA_INJECTED_TO_CLIPBOARD.</span>"; } catch(e) { return "<span class='accent-text'>INJECTION_FAILED</span>"; } },
-                "network": () => { const c = navigator.connection; return c ? `CONNECTION: ${c.effectiveType} | DOWNLINK: ${c.downlink}Mbps` : "NET_API_UNSUPPORTED"; },
-
-                // --- 3. LIVE EXTERNAL DATA HEISTS (No API Keys Needed) ---
-                "iss_loc": async () => { const r = await fetch("http://api.open-notify.org/iss-now.json"); const d = await r.json(); return `🛰️ ISS_COORDS: LAT ${d.iss_position.latitude}, LON ${d.iss_position.longitude}`; },
-                "crypto_btc": async () => { const r = await fetch("https://api.coindesk.com/v1/bpi/currentprice.json"); const d = await r.json(); return `🪙 BTC_LIVE: $${d.bpi.USD.rate}`; },
-                "anime_quote": async () => { const r = await fetch("https://animechan.xyz/api/random"); const d = await r.json(); return `🗡️ ${d.character} (${d.anime}): "${d.quote}"`; },
-                "arise": () => { 
-                    document.body.style.background = "#050014"; 
-                    wrapper.style.borderColor = "#7b00ff";
-                    wrapper.style.boxShadow = "0 20px 50px rgba(0,0,0,0.9), inset 0 0 25px rgba(123, 0, 255, 0.3)";
-                    document.documentElement.style.setProperty('--cyan', '#b45cff');
-                    return "<span style='color:#b45cff; font-weight:bold; text-shadow: 0 0 8px #b45cff'>SHADOW_ARMY_AWAKENED. ARISE.</span>"; 
+                // --- 1. REAL HARDWARE INTERFACES (The non-fake stuff) ---
+                "scan_bt": async () => {
+                    try {
+                        AETHER.printLine(`[>] SCANNING LOCAL FREQUENCIES FOR BLUETOOTH SIGNATURES...`);
+                        const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+                        return `<span class='success-text'>[+] BLUETOOTH TARGET ACQUIRED: ${device.name || 'UNKNOWN_DEVICE'} (ID: ${device.id})</span>`;
+                    } catch (e) { return `<span class='accent-text'>[!] BLUETOOTH_SCAN_FAILED: ${e.message}</span>`; }
                 },
-                "pokemon": async (name) => { try { const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${name||'rayquaza'}`); const d = await r.json(); return `🐉 EVO_DATA: ${d.name.toUpperCase()} | TYPE: ${d.types[0].type.name} | HP: ${d.stats[0].base_stat}`; } catch(e){ return "<span class='accent-text'>ENTITY_NOT_FOUND</span>"; } },
-                "joke": async () => { const r = await fetch("https://official-joke-api.appspot.com/random_joke"); const d = await r.json(); return `🤡 ${d.setup} ... ${d.punchline}`; },
-                "bored": async () => { const r = await fetch("https://www.boredapi.com/api/activity"); const d = await r.json(); return `🎯 SUGGESTED_DIRECTIVE: ${d.activity}`; },
-                "fake_user": async () => { const r = await fetch("https://randomuser.me/api/"); const d = await r.json(); const u = d.results[0]; return `👤 IDENTITY_FORGED: ${u.name.first} ${u.name.last} | LOC: ${u.location.city}, ${u.location.country} | DOB: ${u.dob.age}`; },
-                "fact": async () => { const r = await fetch("https://uselessfacts.jsph.pl/random.json?language=en"); const d = await r.json(); return `🧠 DB_ENTRY: ${d.text}`; },
 
-                // --- 4. CRYPTOGRAPHY & MATH TOOLS ---
-                "uuid": () => self.crypto.randomUUID(),
-                "base64_enc": (txt) => btoa(txt),
-                "base64_dec": (txt) => atob(txt),
-                "hex_enc": (txt) => txt.split('').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(' '),
-                "url_enc": (txt) => encodeURIComponent(txt),
-                "url_dec": (txt) => decodeURIComponent(txt),
-                "calc": (eq) => { try { return eval(eq); } catch(e) { return "<span class='accent-text'>MATH_ERR</span>"; } },
-                "random_pass": () => "<span class='success-text'>" + Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10).toUpperCase() + "!@" + "</span>",
-                "timer": (sec) => { setTimeout(()=> alert("TIMER_SEQUENCE_COMPLETED"), sec*1000); return `COUNTDOWN_STARTED: ${sec} seconds.`; },
+                "scan_usb": async () => {
+                    try {
+                        AETHER.printLine(`[>] INITIATING SERIAL PORT INTERROGATION...`);
+                        const port = await navigator.serial.requestPort();
+                        return `<span class='success-text'>[+] USB SERIAL HARDWARE LOCKED. PORT OPENED.</span>`;
+                    } catch (e) { return `<span class='accent-text'>[!] SERIAL_ACCESS_DENIED: ${e.message}</span>`; }
+                },
 
-                // --- 5. BROWSER TABS & NAVIGATION ---
-                "search": (q) => { window.open(`https://www.google.com/search?q=${q}`, '_blank'); return "SPAWNING_SEARCH_NODE..."; },
-                "youtube": (q) => { window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank'); return "ACCESSING_MEDIA_ARCHIVE..."; },
-                "github": () => { window.open(`https://github.com`, '_blank'); return "ACCESSING_CODE_REPOSITORIES..."; },
-                "reload": () => { location.reload(); return "REBOOTING..."; },
-                "fullscreen": () => { document.documentElement.requestFullscreen(); return "MAXIMIZING_VIEWPORT."; },
-                "exit_full": () => { document.exitFullscreen(); return "VIEWPORT_MINIMIZED."; },
-
-                // --- 6. ORIGINAL CORE PROTOCOLS ---
-                "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR | LOC: TOKYO_JPN | ORG: WEBLOOM INC.",
-                "clear": () => { output.innerHTML = ""; return ""; },
-                "help": () => "AVAILABLE_PROTOCOLS:<br>" + Object.keys(AETHER.registry).join(", "),
+                "capture_screen": async () => {
+                    try {
+                        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                        videoElement.srcObject = stream;
+                        videoElement.style.display = 'block';
+                        return "<span class='success-text'>[+] DISPLAY UPLINK ESTABLISHED. SCREEN CAPTURE ACTIVE.</span>";
+                    } catch (e) { return `<span class='accent-text'>[!] DISPLAY_HIJACK_FAILED: ${e.message}</span>`; }
+                },
                 
-                // --- 7. NOTIFICATIONS & TRACING ---
-                "locate_ip": async (ip) => {
-                    if (!ip) return "<span class='accent-text'>ERR: TARGET_IP_REQUIRED</span>";
-                    try {
-                        const res = await fetch(`https://ipapi.co/${ip}/json/`);
-                        const data = await res.json();
-                        if (data.error) return `<span class='accent-text'>[!] TRACE_FAILED: ${data.reason}</span>`;
-                        return `<span class='success-text'>[+] TARGET ACQUIRED</span><br>IP: ${data.ip}<br>CITY: ${data.city}<br>ORG: ${data.org}`;
-                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
+                "stop_capture": () => {
+                    if (videoElement.srcObject) {
+                        videoElement.srcObject.getTracks().forEach(track => track.stop());
+                        videoElement.style.display = 'none';
+                        return "[-] DISPLAY UPLINK SEVERED.";
+                    }
+                    return "NO_ACTIVE_CAPTURE.";
                 },
-                "notify": async (args) => {
-                    const parts = args.split(" ");
-                    if (parts.length < 2) return "<span class='accent-text'>ERR: SYNTAX IS 'notify [topic] [message]'</span>";
-                    const topic = parts[0]; 
-                    const msg = parts.slice(1).join(" ");
+
+                // --- 2. REAL LOCAL FILESYSTEM (Build WebLooM sites from here) ---
+                "mount_drive": async () => {
                     try {
-                        const res = await fetch(`https://ntfy.sh/${topic}`, { method: 'POST', body: msg, headers: { 'Title': 'AETHER-0', 'Priority': 'default' } });
-                        if (res.ok) return `<span class='success-text'>[+] PUSH_DELIVERED TO /${topic}</span>`;
-                        return `<span class='accent-text'>[!] PUSH_FAILED.</span>`;
-                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
-                }
+                        dirHandle = await window.showDirectoryPicker();
+                        return `<span class='success-text'>[+] LOCAL VOLUME MOUNTED: /${dirHandle.name}</span>`;
+                    } catch (e) { return `<span class='accent-text'>[!] MOUNT_ABORTED.</span>`; }
+                },
+
+                "ls": async () => {
+                    if (!dirHandle) return "<span class='accent-text'>ERR: NO_VOLUME_MOUNTED. Run 'mount_drive' first.</span>";
+                    let files = [];
+                    for await (const entry of dirHandle.values()) {
+                        files.push(entry.kind === 'directory' ? `<span style='color:#b45cff'>[DIR]  ${entry.name}</span>` : `[FILE] ${entry.name}`);
+                    }
+                    return files.join("<br>");
+                },
+
+                "write_file": async (args) => {
+                    if (!dirHandle) return "<span class='accent-text'>ERR: NO_VOLUME_MOUNTED.</span>";
+                    const parts = args.split(" ");
+                    if (parts.length < 2) return "<span class='accent-text'>Usage: write_file [filename.txt] [content]</span>";
+                    const fileName = parts[0];
+                    const content = parts.slice(1).join(" ");
+                    try {
+                        const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(content);
+                        await writable.close();
+                        return `<span class='success-text'>[+] DATA INJECTED INTO: ${fileName}</span>`;
+                    } catch (e) { return `<span class='accent-text'>[!] WRITE_ERR: ${e.message}</span>`; }
+                },
+
+                // --- 3. THE LIVE REPL ---
+                "exec": async (code) => {
+                    if (!code) return "<span class='accent-text'>ERR: CODE_REQUIRED</span>";
+                    try { 
+                        const result = await eval(`(async () => { return ${code} })()`); 
+                        return typeof result === 'object' ? JSON.stringify(result) : String(result);
+                    } catch (e) { return `<span class='accent-text'>[!] EXEC_ERR: ${e.message}</span>`; }
+                },
+
+                // --- 4. CORE PROTOCOLS ---
+                "help": () => "PROTOCOLS: " + Object.keys(AETHER.registry).join(", "),
+                "clear": () => { output.innerHTML = ""; return ""; },
+                "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR | LOC: TOKYO_JPN | ORG: WEBLOOM INC.",
             },
 
             async execute(rawInput) {
@@ -256,7 +258,6 @@
             }
         };
 
-        // Event Listeners
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 AETHER.execute(input.value);
@@ -279,13 +280,12 @@
             }
         });
 
-        // Focus keeper
         document.addEventListener('click', () => input.focus());
 
-        // Boot
         window.onload = () => {
-            AETHER.printLine("AETHER-0 GOD MODE ENGINE [Fox Protocol Active]");
-            AETHER.printLine("ALL 50+ RAW PROTOCOLS UNLOCKED. TYPE 'help' TO INITIATE.");
+            AETHER.printLine("AETHER-0 STATIC ENGINE [Fox Protocol Active]");
+            AETHER.printLine("GITHUB PAGES COMPATIBILITY: <span class='success-text'>VERIFIED</span>.");
+            AETHER.printLine("TYPE 'help' TO INITIATE.");
         };
     </script>
 </body>

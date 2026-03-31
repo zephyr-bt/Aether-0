@@ -3,18 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETHER-0 // UNIVERSAL_OVERRIDE</title>
-    <link rel="stylesheet" href="style.css">
+    <title>AETHER-0 // FOX_ENGINE</title>
+    <style>
+        :root {
+            --cyan: #00f2ff;
+            --red: #ff0055;
+            --bg: #09090e;
+            --glass: rgba(15, 15, 25, 0.8);
+            --border: rgba(0, 242, 255, 0.2);
+            --text-main: #e0e0e0;
+            --font: 'Consolas', 'Courier New', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, var(--bg) 70%);
+            color: var(--text-main);
+            font-family: var(--font);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #terminal-wrapper {
+            width: 90vw;
+            height: 85vh;
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,242,255,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            color: var(--cyan);
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px var(--cyan);
+        }
+
+        #output {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            scrollbar-width: none; /* Firefox */
+        }
+        #output::-webkit-scrollbar { display: none; } /* Chrome */
+
+        .line {
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: fadeIn 0.2s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-5px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .prompt-text { color: var(--cyan); font-weight: bold; margin-right: 10px; text-shadow: 0 0 5px var(--cyan); }
+        .accent-text { color: var(--red); font-weight: bold; text-shadow: 0 0 5px var(--red); }
+
+        #input-area {
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            border-radius: 0 0 12px 12px;
+        }
+
+        #cmd-input {
+            background: transparent;
+            border: none;
+            color: var(--cyan);
+            font-family: inherit;
+            font-size: 1.1rem;
+            width: 100%;
+            outline: none;
+            text-shadow: 0 0 5px var(--cyan);
+        }
+    </style>
 </head>
-<body class="matrix-mode">
-    <div id="crt-overlay"></div>
-    <div id="terminal">
+<body>
+
+    <div id="terminal-wrapper">
+        <div id="header">
+            <span>AETHER-0 // FOX_ENGINE</span>
+            <span id="clock">00:00:00</span>
+        </div>
         <div id="output"></div>
-        <div class="input-line">
-            <span class="prompt">ROOT@AETHER0:~$</span>
-            <input type="text" id="cmd-input" autofocus spellcheck="false" autocomplete="off">
+        <div id="input-area">
+            <span class="prompt-text">ROOT@AETHER0:~$</span>
+            <input type="text" id="cmd-input" autofocus autocomplete="off" spellcheck="false">
         </div>
     </div>
-    <script src="kernel.js"></script>
+
+    <script>
+        const output = document.getElementById('output');
+        const input = document.getElementById('cmd-input');
+        const clock = document.getElementById('clock');
+
+        // Live Clock
+        setInterval(() => { clock.innerText = new Date().toLocaleTimeString(); }, 1000);
+
+        const AETHER = {
+            history: [],
+            historyIndex: -1,
+
+            registry: {
+                "help": () => "PROTOCOLS: " + Object.keys(AETHER.registry).join(", "),
+                "clear": () => { output.innerHTML = ""; return ""; },
+                "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR | ORG: WebLooM Inc.",
+                "date": () => new Date().toLocaleString(),
+                
+                // Real Geolocation
+                "locate_ip": async (args) => {
+                    if (!args) return "<span class='accent-text'>ERR: TARGET_IP_REQUIRED.</span>";
+                    AETHER.printLine(`[>] TRACING ROUTE TO ${args}...`);
+                    try {
+                        const res = await fetch(`https://ipapi.co/${args}/json/`);
+                        const data = await res.json();
+                        if (data.error) return `<span class='accent-text'>[!] TRACE_FAILED: ${data.reason}</span>`;
+                        return `<span class='prompt-text'>[+] TARGET ACQUIRED</span><br>IP: ${data.ip}<br>CITY: ${data.city}<br>ORG: ${data.org}`;
+                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR: ${err.message}</span>`; }
+                },
+
+                // Real Native Push (ntfy.sh)
+                "notify": async (args) => {
+                    const parts = args.split(" ");
+                    if (parts.length < 2) return "<span class='accent-text'>ERR: SYNTAX IS 'notify [topic] [message]'</span>";
+                    const topic = parts[0]; 
+                    const msg = parts.slice(1).join(" ");
+                    
+                    AETHER.printLine(`[>] BROADCASTING SECURE PUSH TO /${topic}...`);
+                    try {
+                        const res = await fetch(`https://ntfy.sh/${topic}`, {
+                            method: 'POST', body: msg,
+                            headers: { 'Title': 'AETHER-0', 'Priority': 'default' }
+                        });
+                        if (res.ok) return `<span class='prompt-text'>[+] PUSH_DELIVERED.</span>`;
+                        return `<span class='accent-text'>[!] PUSH_FAILED.</span>`;
+                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR: ${err.message}</span>`; }
+                },
+
+                "fortress": async (topic) => {
+                    if (!topic) return "<span class='accent-text'>ERR: TOPIC_REQUIRED.</span>";
+                    AETHER.printLine(`<span class='accent-text'>[!] INITIATING FORTRESS PROTOCOL ON /${topic}</span>`);
+                    try {
+                        const res = await fetch(`https://ntfy.sh/${topic}`, {
+                            method: 'POST', body: "SYSTEM COMPROMISE DETECTED. VERIFY HTTPS.",
+                            headers: { 'Title': '🚨 FORTRESS PROTOCOL 🚨', 'Priority': '5', 'Warning': 'yes' }
+                        });
+                        if (res.ok) return `<span class='accent-text'>[+] FORTRESS_ACTIVE: Max-priority alarm triggered.</span>`;
+                        return `<span class='accent-text'>[!] FORTRESS_FAILED.</span>`;
+                    } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR.</span>`; }
+                },
+
+                // Real DOM Manipulation
+                "shred": (selector) => {
+                    if (!selector) return "<span class='accent-text'>ERR: TARGET_SELECTOR_REQUIRED</span>";
+                    const el = document.querySelector(selector);
+                    if (el) {
+                        el.style.transition = "all 0.4s";
+                        el.style.transform = "scale(0)";
+                        setTimeout(() => el.remove(), 400);
+                        return `TARGET_DESTROYED: ${selector}`;
+                    }
+                    return "<span class='accent-text'>ERR: TARGET_NOT_FOUND</span>";
+                },
+
+                // Live REPL Engine
+                "exec": async (code) => {
+                    if (!code) return "<span class='accent-text'>ERR: CODE_REQUIRED</span>";
+                    try { 
+                        const result = await eval(`(async () => { return ${code} })()`); 
+                        return typeof result === 'object' ? JSON.stringify(result) : String(result);
+                    } catch (e) { return `<span class='accent-text'>[!] EXEC_ERR: ${e.message}</span>`; }
+                }
+            },
+
+            async execute(rawInput) {
+                if (!rawInput.trim()) return;
+                
+                this.history.push(rawInput);
+                this.historyIndex = this.history.length;
+
+                const parts = rawInput.trim().split(/\s+/);
+                const cmd = parts[0].toLowerCase();
+                const args = parts.slice(1).join(" ");
+
+                this.printLine(`<span class="prompt-text">ROOT@AETHER0:~$</span> ${rawInput}`);
+
+                if (this.registry[cmd]) {
+                    try {
+                        const result = await this.registry[cmd](args);
+                        if (result) this.printLine(result);
+                    } catch (err) {
+                        this.printLine(`<span class='accent-text'>[!] KERNEL_PANIC: ${err.message}</span>`);
+                    }
+                } else {
+                    this.printLine(`<span class='accent-text'>[!] UNKNOWN_PROTOCOL: '${cmd}'</span>`);
+                }
+            },
+
+            printLine(text) {
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = text;
+                output.appendChild(line);
+                output.scrollTop = output.scrollHeight;
+            }
+        };
+
+        // Event Listeners
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                AETHER.execute(input.value);
+                input.value = "";
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (AETHER.historyIndex > 0) {
+                    AETHER.historyIndex--;
+                    input.value = AETHER.history[AETHER.historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (AETHER.historyIndex < AETHER.history.length - 1) {
+                    AETHER.historyIndex++;
+                    input.value = AETHER.history[AETHER.historyIndex];
+                } else {
+                    AETHER.historyIndex = AETHER.history.length;
+                    input.value = "";
+                }
+            }
+        });
+
+        // Boot
+        window.onload = () => {
+            AETHER.printLine("AETHER-0 LIVE API ENGINE [Fox Protocol Active]");
+            AETHER.printLine("UI: MODERN GLASSMORPHISM | ENGINE: ONLINE");
+        };
+    </script>
 </body>
 </html>

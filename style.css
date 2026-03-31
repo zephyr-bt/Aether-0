@@ -1,23 +1,129 @@
-:root { --g: #00ff41; --r: #ff0000; --bg: #0a0a0a; }
-body { background: var(--bg); color: var(--g); font-family: 'Consolas', monospace; margin: 0; padding: 20px; overflow-x: hidden; transition: all 0.3s ease; }
-body.hunter-mode { color: var(--r); background: #1a0505; }
 
-/* CRT Scanline Effect */
-#crt-overlay {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-    background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 1000;
+:root {
+    --cyan: #00f2ff;
+    --hunter-red: #ff0055;
+    --matrix-green: #00ff41;
+    --bg-glass: rgba(10, 12, 16, 0.75);
+    --border-glow: rgba(0, 242, 255, 0.4);
+    --font-main: 'Consolas', 'Courier New', monospace;
 }
 
-.prompt { font-weight: bold; margin-right: 10px; }
-input { background: transparent; border: none; color: inherit; font-family: inherit; font-size: 1rem; width: 80%; outline: none; }
+* { box-sizing: border-box; }
 
-/* Glitch Animation */
+body {
+    background: #050505 radial-gradient(circle at center, #111 0%, #000 100%);
+    color: var(--cyan);
+    font-family: var(--font-main);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+/* Bi-Modal UI Shifts */
+body.matrix-mode { color: var(--matrix-green); --border-glow: rgba(0, 255, 65, 0.4); }
+body.hunter-mode { color: var(--hunter-red); --border-glow: rgba(255, 0, 85, 0.4); background: #0a0000; }
+
+/* The Sleek Glass Container */
+#terminal-container {
+    width: 90vw;
+    height: 85vh;
+    background: var(--bg-glass);
+    backdrop-filter: blur(25px) saturate(150%);
+    -webkit-backdrop-filter: blur(25px) saturate(150%);
+    border: 1px solid var(--border-glow);
+    border-radius: 16px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+}
+
+/* Techbo Scanlines overlaying the glass */
+#terminal-container::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Header Panel */
+#header {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid var(--border-glow);
+    text-shadow: 0 0 8px currentColor;
+}
+
+/* Output Area */
+#output {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-glow) transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+#output::-webkit-scrollbar { width: 6px; }
+#output::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+
+/* Line Animations */
+.line {
+    margin-bottom: 8px;
+    line-height: 1.5;
+    text-shadow: 0 0 5px currentColor;
+    opacity: 0;
+    animation: slideUp 0.3s ease forwards;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.prompt { font-weight: bold; margin-right: 12px; opacity: 0.8; }
+
+/* Input Area */
+#input-area {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+#cmd-input {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: 1.1rem;
+    width: 100%;
+    outline: none;
+    text-shadow: 0 0 5px currentColor;
+}
+
+/* Glitch Effect */
 @keyframes glitch {
     0% { transform: translate(0); }
-    20% { transform: translate(-3px, 2px); filter: hue-rotate(90deg); }
-    80% { transform: translate(3px, -2px); filter: invert(1); }
+    20% { transform: translate(-4px, 2px); filter: hue-rotate(90deg); }
+    40% { transform: translate(-4px, -2px); }
+    60% { transform: translate(4px, 2px); filter: invert(1); }
+    80% { transform: translate(4px, -2px); }
     100% { transform: translate(0); }
 }
-.glitch-effect { animation: glitch 0.2s linear infinite; }
+.glitch-active { animation: glitch 0.15s linear infinite; }

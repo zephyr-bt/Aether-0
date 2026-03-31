@@ -237,4 +237,36 @@ window.onload = () => {
     AETHER_KERNEL.printLine("AETHER-0 LIVE API ENGINE [Fox Protocol Active]");
     AETHER_KERNEL.printLine("WARNING: EXECUTING REAL NETWORK REQUESTS.");
 };
+        // --- INITIALIZE REAL PYTHON IN THE BROWSER ---
+        let pyodideReady = false;
+        let pyodide = null;
+        
+        async function bootPythonCore() {
+            AETHER.printLine("[>] DOWNLOADING PYTHON WEBASSEMBLY KERNEL...");
+            try {
+                pyodide = await loadPyodide();
+                pyodideReady = true;
+                AETHER.printLine("<span class='success-text'>[+] Wasm CPYTHON ENVIRONMENT SECURED AND ACTIVE.</span>");
+            } catch (err) {
+                AETHER.printLine(`<span class='accent-text'>[!] WASM_ERR: ${err.message}</span>`);
+            }
+        }
+        
+        // Boot it right after the window loads
+        setTimeout(bootPythonCore, 1000);
+
+        // --- ADD THIS TO YOUR AETHER REGISTRY ---
+        // Command: py [python_code]
+        "py": async (code) => {
+            if (!code) return "<span class='accent-text'>ERR: PYTHON_CODE_REQUIRED</span>";
+            if (!pyodideReady) return "<span class='accent-text'>ERR: PYTHON_KERNEL_STILL_BOOTING</span>";
+            
+            try {
+                // Execute real Python directly in the browser memory
+                const pyResult = await pyodide.runPythonAsync(code);
+                return typeof pyResult !== 'undefined' ? `<span style="color:#f2e422;">PYTHON_OUT: ${pyResult}</span>` : "<span class='success-text'>[+] EXECUTED.</span>";
+            } catch (err) {
+                return `<span class='accent-text'>[!] PYTHON_TRACEBACK: ${err.message}</span>`;
+            }
+        },
 

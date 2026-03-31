@@ -1,0 +1,23 @@
+:root { --g: #00ff41; --r: #ff0000; --bg: #0a0a0a; }
+body { background: var(--bg); color: var(--g); font-family: 'Consolas', monospace; margin: 0; padding: 20px; overflow-x: hidden; transition: all 0.3s ease; }
+body.hunter-mode { color: var(--r); background: #1a0505; }
+
+/* CRT Scanline Effect */
+#crt-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 1000;
+}
+
+.prompt { font-weight: bold; margin-right: 10px; }
+input { background: transparent; border: none; color: inherit; font-family: inherit; font-size: 1rem; width: 80%; outline: none; }
+
+/* Glitch Animation */
+@keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-3px, 2px); filter: hue-rotate(90deg); }
+    80% { transform: translate(3px, -2px); filter: invert(1); }
+    100% { transform: translate(0); }
+}
+.glitch-effect { animation: glitch 0.2s linear infinite; }

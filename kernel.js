@@ -193,8 +193,8 @@ const AETHER = {
         "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR<br>ORIGIN: TOKYO_JPN | LOCAL_NODE: KADAYANALLUR_IND<br>ORG: WEBLOOM INC.",
         "clear": () => { output.innerHTML = ""; return ""; },
         "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", "),
-        
-                // --- 12. DOMAIN EXPANSION (V2 - CINEMATIC OVERRIDE) ---
+
+        // --- 12. DOMAIN EXPANSION (V2 - CINEMATIC OVERRIDE) ---
         "domain_expansion": () => {
             // Lock scrolling and prep the canvas
             document.body.style.overflow = "hidden";
@@ -315,7 +315,40 @@ const AETHER = {
 
             return "";
         }
+    },
 
+    async execute(rawInput) {
+        if (!rawInput.trim()) return;
+
+        this.history.push(rawInput);
+        this.historyIndex = this.history.length;
+
+        const parts = rawInput.trim().split(/\s+/);
+        const cmd = parts[0].toLowerCase();
+        const args = parts.slice(1).join(" ");
+
+        this.printLine(`<span class="prompt-text">ROOT@AETHER0:~$</span> ${rawInput}`);
+
+        if (this.registry[cmd]) {
+            try {
+                const result = await this.registry[cmd](args);
+                if (result) this.printLine(result);
+            } catch (err) {
+                this.printLine(`<span class='accent-text'>[!] KERNEL_PANIC: ${err.message}</span>`);
+            }
+        } else {
+            this.printLine(`<span class='accent-text'>[!] UNKNOWN_PROTOCOL: '${cmd}'</span>`);
+        }
+    },
+
+    printLine(text) {
+        const line = document.createElement('div');
+        line.className = 'line';
+        line.innerHTML = text;
+        output.appendChild(line);
+        output.scrollTop = output.scrollHeight;
+    }
+};
 
 // --- MOBILE-OPTIMIZED INPUT LISTENER ---
 input.addEventListener('keyup', (e) => {

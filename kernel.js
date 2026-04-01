@@ -20,7 +20,6 @@ let pyodide = null;
 async function bootPythonCore() {
     AETHER.printLine("[>] INITIALIZING WASM PYTHON KERNEL...");
     try {
-        // Requires: <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script> in index.html
         if (typeof loadPyodide !== "undefined") {
             pyodide = await loadPyodide();
             pyodideReady = true;
@@ -60,7 +59,58 @@ const AETHER = {
             } catch (err) { return `<span class='accent-text'>[!] PYTHON_TRACEBACK: ${err.message}</span>`; }
         },
 
-        // --- 2. HARDWARE IOT / LAN / BLUETOOTH CONTROLLERS ---
+        // --- 2. SONY BRAVIA & ROKU LAN CONTROLLERS ---
+        "sony_power": async (args) => {
+            const parts = args.split(" ");
+            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_power [local_ip] [psk_key]</span>";
+            const ip = parts[0];
+            const psk = parts[1];
+            
+            const payload = `<?xml version="1.0"?>
+            <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                <s:Body>
+                    <u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1">
+                        <IRCCCode>AAAAAQAAAAEAAAAVAw==</IRCCCode>
+                    </u:X_SendIRCC>
+                </s:Body>
+            </s:Envelope>`;
+
+            try {
+                AETHER.printLine(`[>] TRANSMITTING IRCC XML PAYLOAD TO ${ip}...`);
+                await fetch(`http://${ip}/sony/IRCC`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Auth-PSK': psk,
+                        'Content-Type': 'text/xml; charset=utf-8',
+                        'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"'
+                    },
+                    body: payload
+                });
+                return `<span class='success-text'>[+] BRAVIA OVERRIDDEN. POWER TOGGLED.</span>`;
+            } catch(e) { return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}<br>(Check CORS extensions if running in browser sandbox).</span>`; }
+        },
+        "sony_mute": async (args) => {
+            const parts = args.split(" ");
+            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_mute [local_ip] [psk_key]</span>";
+            const payload = `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1"><IRCCCode>AAAAAQAAAAEAAAAUAw==</IRCCCode></u:X_SendIRCC></s:Body></s:Envelope>`;
+            try {
+                await fetch(`http://${parts[0]}/sony/IRCC`, {
+                    method: 'POST',
+                    headers: { 'X-Auth-PSK': parts[1], 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"' },
+                    body: payload
+                });
+                return `<span class='success-text'>[+] BRAVIA AUDIO MUTED.</span>`;
+            } catch(e) { return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}</span>`; }
+        },
+        "tv_power": async (ip) => {
+            if (!ip) return "<span class='accent-text'>Usage: tv_power [local_ip] (e.g., Roku port 8060)</span>";
+            try {
+                await fetch(`http://${ip}:8060/keypress/Power`, { method: 'POST', mode: 'no-cors' });
+                return `<span class='success-text'>[+] POWER_PAYLOAD DELIVERED TO LAN IP: ${ip}</span>`;
+            } catch(e) { return `<span class='accent-text'>[!] LAN_ERR: ${e.message}</span>`; }
+        },
+
+        // --- 3. BLUETOOTH (BLE) CONTROLLERS ---
         "bt_scan": async () => {
             try {
                 AETHER.printLine(`[>] SCANNING LOCAL FREQUENCIES FOR BLE SIGNATURES...`);
@@ -85,15 +135,8 @@ const AETHER = {
             }
             return "ERR: NO_ACTIVE_BT_CONNECTION.";
         },
-        "tv_power": async (ip) => {
-            if (!ip) return "<span class='accent-text'>Usage: tv_power [local_ip] (e.g., 192.168.1.50)</span>";
-            try {
-                await fetch(`http://${ip}:8060/keypress/Power`, { method: 'POST', mode: 'no-cors' });
-                return `<span class='success-text'>[+] POWER_PAYLOAD DELIVERED TO LAN IP: ${ip}</span>`;
-            } catch(e) { return `<span class='accent-text'>[!] LAN_ERR: ${e.message}</span>`; }
-        },
 
-        // --- 3. DOM DESTRUCTION & UI MANIPULATION ---
+        // --- 4. DOM DESTRUCTION & UI MANIPULATION ---
         "edit_web": () => { document.designMode = "on"; return "<span class='success-text'>[+] DOM UNLOCKED: Type anywhere on this webpage.</span>"; },
         "lock_web": () => { document.designMode = "off"; return "<span class='accent-text'>[-] DOM LOCKED.</span>"; },
         "barrel_roll": () => { wrapper.style.transition = "transform 2s"; wrapper.style.transform = "rotate(360deg)"; setTimeout(()=>wrapper.style.transform="", 2000); return "DOING A BARREL ROLL."; },
@@ -104,7 +147,7 @@ const AETHER = {
         "hide_cursor": () => { document.body.style.cursor = "none"; return "STEALTH_CURSOR_ACTIVE."; },
         "show_cursor": () => { document.body.style.cursor = "default"; return "CURSOR_RESTORED."; },
 
-        // --- 4. HARDWARE & OS INTERROGATION ---
+        // --- 5. HARDWARE & OS INTERROGATION ---
         "battery": async () => { try { const b = await navigator.getBattery(); return `BATTERY: ${b.level*100}% | CHARGING: ${b.charging}`; } catch(e) { return "<span class='accent-text'>HARDWARE_LOCKED</span>"; } },
         "vibrate": () => { navigator.vibrate([200, 100, 200, 100, 500]); return "HAPTIC_MOTORS_ENGAGED."; },
         "voice": (msg) => { const u = new SpeechSynthesisUtterance(msg || "Super star override protocol accepted."); window.speechSynthesis.speak(u); return "TTS_ONLINE."; },
@@ -112,7 +155,7 @@ const AETHER = {
         "memory": () => `RAM_HEAP_LIMIT: ${performance.memory ? performance.memory.jsHeapSizeLimit / 1048576 + ' MB' : 'DENIED'}`,
         "platform": () => `OS_USER_AGENT: ${navigator.userAgent}`,
 
-        // --- 5. LIVE DATA HEISTS ---
+        // --- 6. LIVE DATA HEISTS ---
         "iss_loc": async () => { const r = await fetch("http://api.open-notify.org/iss-now.json"); const d = await r.json(); return `🛰️ ISS_COORDS: LAT ${d.iss_position.latitude}, LON ${d.iss_position.longitude}`; },
         "crypto_btc": async () => { const r = await fetch("https://api.coindesk.com/v1/bpi/currentprice.json"); const d = await r.json(); return `🪙 BTC_LIVE: $${d.bpi.USD.rate}`; },
         "arise": () => { 
@@ -124,7 +167,7 @@ const AETHER = {
         },
         "pokemon": async (name) => { try { const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${name||'rayquaza'}`); const d = await r.json(); return `🐉 EVO_DATA: ${d.name.toUpperCase()} | TYPE: ${d.types[0].type.name} | HP: ${d.stats[0].base_stat}`; } catch(e){ return "<span class='accent-text'>ENTITY_NOT_FOUND</span>"; } },
 
-        // --- 6. NETWORK & TRACKING ---
+        // --- 7. NETWORK & TRACKING ---
         "locate_ip": async (ip) => {
             if (!ip) return "<span class='accent-text'>ERR: TARGET_IP_REQUIRED</span>";
             try {
@@ -146,7 +189,7 @@ const AETHER = {
             } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
         },
 
-        // --- 7. SYSTEM CORE ---
+        // --- 8. SYSTEM CORE ---
         "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR<br>ORIGIN: TOKYO_JPN | LOCAL_NODE: KADAYANALLUR_IND<br>ORG: WEBLOOM INC. (WEBSITES ONLY)",
         "clear": () => { output.innerHTML = ""; return ""; },
         "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", ")
@@ -210,58 +253,6 @@ input.addEventListener('keydown', (e) => {
 
 // Auto-focus input when clicking terminal
 document.addEventListener('click', () => input.focus());
-        // --- SONY BRAVIA IP CONTROLLER ---
-        "sony_power": async (args) => {
-            const parts = args.split(" ");
-            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_power [local_ip] [psk_key]</span>";
-            const ip = parts[0];
-            const psk = parts[1]; // The code you set on the TV (e.g., 0000)
-            
-            // Raw SOAP XML payload for the Power Toggle command
-            const payload = `<?xml version="1.0"?>
-            <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-                <s:Body>
-                    <u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1">
-                        <IRCCCode>AAAAAQAAAAEAAAAVAw==</IRCCCode>
-                    </u:X_SendIRCC>
-                </s:Body>
-            </s:Envelope>`;
-
-            try {
-                AETHER.printLine(`[>] TRANSMITTING IRCC XML PAYLOAD TO ${ip}...`);
-                await fetch(`http://${ip}/sony/IRCC`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Auth-PSK': psk,
-                        'Content-Type': 'text/xml; charset=utf-8',
-                        'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"'
-                    },
-                    body: payload
-                });
-                return `<span class='success-text'>[+] BRAVIA OVERRIDDEN. POWER TOGGLED.</span>`;
-            } catch(e) { 
-                return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}<br>(Note: If fetching from a browser, CORS may block custom headers. Use a CORS-unblock extension or the native Python bridge).</span>`; 
-            }
-        },
-
-        "sony_mute": async (args) => {
-            const parts = args.split(" ");
-            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_mute [local_ip] [psk_key]</span>";
-            const ip = parts[0];
-            const psk = parts[1];
-            
-            const payload = `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1"><IRCCCode>AAAAAQAAAAEAAAAUAw==</IRCCCode></u:X_SendIRCC></s:Body></s:Envelope>`;
-
-            try {
-                await fetch(`http://${ip}/sony/IRCC`, {
-                    method: 'POST',
-                    headers: { 'X-Auth-PSK': psk, 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"' },
-                    body: payload
-                });
-                return `<span class='success-text'>[+] BRAVIA AUDIO MUTED.</span>`;
-            } catch(e) { return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}</span>`; }
-        },
-
 
 // --- BOOT SEQUENCE ---
 window.onload = () => {
@@ -269,4 +260,3 @@ window.onload = () => {
     AETHER.printLine("BLUETOOTH, LAN & DOM INJECTION PROTOCOLS ONLINE.");
     AETHER.printLine("TYPE 'help' TO INITIATE.");
 };
-

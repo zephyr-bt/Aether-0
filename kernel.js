@@ -1,7 +1,7 @@
 /**
  * AETHER-0 // GOD_MODE_KERNEL
  * ARCHITECT: FAHAD MALIK (SUPER_STAR)
- * ORG: WEBLOOM INC. (WEBSITES ONLY)
+ * ORG: WEBLOOM INC. 
  * ORIGIN: TOKYO_JPN // LOCAL_NODE: KADAYANALLUR_IND
  */
 
@@ -190,7 +190,7 @@ const AETHER = {
         },
 
         // --- 8. SYSTEM CORE ---
-        "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR<br>ORIGIN: TOKYO_JPN | LOCAL_NODE: KADAYANALLUR_IND<br>ORG: WEBLOOM INC. (WEBSITES ONLY)",
+        "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR<br>ORIGIN: TOKYO_JPN | LOCAL_NODE: KADAYANALLUR_IND<br>ORG: WEBLOOM INC.",
         "clear": () => { output.innerHTML = ""; return ""; },
         "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", ")
     },
@@ -228,9 +228,11 @@ const AETHER = {
     }
 };
 
-// --- INPUT EVENT LISTENERS ---
-input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+// --- MOBILE-OPTIMIZED INPUT LISTENER ---
+input.addEventListener('keyup', (e) => {
+    // 13 is the universal keyCode for the Enter/Return button on mobile devices
+    if (e.key === 'Enter' || e.keyCode === 13) {
+        e.preventDefault(); 
         AETHER.execute(input.value);
         input.value = "";
     } else if (e.key === 'ArrowUp') {
@@ -251,6 +253,14 @@ input.addEventListener('keydown', (e) => {
     }
 });
 
+// Fallback listener for soft-keyboards that trigger a 'search' event instead of 'Enter'
+input.addEventListener('search', () => {
+    if (input.value.trim() !== "") {
+        AETHER.execute(input.value);
+        input.value = "";
+    }
+});
+
 // Auto-focus input when clicking terminal
 document.addEventListener('click', () => input.focus());
 
@@ -258,5 +268,5 @@ document.addEventListener('click', () => input.focus());
 window.onload = () => {
     AETHER.printLine("AETHER-0 GOD MODE ENGINE [Fox Protocol Active]");
     AETHER.printLine("BLUETOOTH, LAN & DOM INJECTION PROTOCOLS ONLINE.");
-    AETHER.printLine("TYPE 'help' TO INITIATE.");
+    AETHER.printLine("MOBILE INPUT OVERRIDE ACTIVE. TYPE 'help' TO INITIATE.");
 };

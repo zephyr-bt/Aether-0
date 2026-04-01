@@ -1,201 +1,107 @@
-/**
- * AETHER-0 // FOX_ENGINE
- * UI_MODE: MODERN_GLASSMORPHISM
- * ARCHITECT: SUPER_STAR // WebLooM Inc. (Websites Only)
- * STATUS: LIVE_API_BRIDGE_ACTIVE
- */
-
 const output = document.getElementById('output');
 const input = document.getElementById('cmd-input');
+const clock = document.getElementById('clock');
+const wrapper = document.getElementById('terminal-wrapper');
 
-// --- REAL EXTERNAL UPLINKS ---
-// Add your Google Cloud API Key for YouTube Data API v3
-const YOUTUBE_API_KEY = "YOUR_REAL_YOUTUBE_API_KEY_HERE"; 
-// Add your Discord server webhook URL
-const DISCORD_WEBHOOK = "YOUR_REAL_DISCORD_WEBHOOK_URL_HERE";
+setInterval(() => { clock.innerText = new Date().toLocaleTimeString("ja-JP"); }, 1000);
 
-const AETHER_KERNEL = {
-    state: { history: [], historyIndex: -1 },
+const AETHER = {
+    history: [],
+    historyIndex: -1,
 
     registry: {
-        // --- 1. RAW HTTP PUSH NOTIFICATION (Ntfy.sh) ---
-        "notify": async (args) => {
-            const parts = args.split(" ");
-            if (parts.length < 2) return "ERR: SYNTAX IS 'notify [secret_topic] [message]'";
-            
-            const topic = parts[0]; 
-            const msg = parts.slice(1).join(" ");
-            
-            AETHER_KERNEL.printLine(`[>] BROADCASTING RAW PUSH TO /${topic}...`);
-
-            try {
-                const res = await fetch(`https://ntfy.sh/${topic}`, {
-                    method: 'POST',
-                    body: msg,
-                    headers: {
-                        'Title': 'AETHER-0 TERMINAL',
-                        'Tags': 'satellite',
-                        'Priority': 'default'
-                    }
-                });
-
-                if (res.ok) return `<span style="color:var(--cyan)">[+] PUSH_DELIVERED: Signal received by target OS.</span>`;
-                return `[!] PUSH_FAILED: HTTP ${res.status}`;
-            } catch (err) { return `[!] NETWORK_ERR: ${err.message}`; }
+        // --- 1. THE REAL EXEC ---
+        "exec": async (code) => {
+            if (!code) return "<span class='accent-text'>ERR: CODE_REQUIRED</span>";
+            try { 
+                const result = await eval(`(async () => { return ${code} })()`); 
+                return typeof result === 'object' ? `<span class='success-text'>${JSON.stringify(result)}</span>` : `<span class='success-text'>${String(result)}</span>`;
+            } catch (e) { return `<span class='accent-text'>[!] EXEC_ERR: ${e.message}</span>`; }
         },
 
-        // --- 2. FORTRESS PROTOCOL (MAX PRIORITY NATIVE ALARM) ---
-        "fortress": async (topic) => {
-            if (!topic) return "ERR: SECURE_TOPIC_REQUIRED. Usage: fortress [secret_topic]";
-            
-            AETHER_KERNEL.printLine(`<span style="color:var(--accent)">[!] INITIATING FORTRESS PROTOCOL ON CHANNEL /${topic}</span>`);
-            const alertMsg = "SYSTEM COMPROMISE DETECTED.\n• Do NOT click unknown links.\n• Verify HTTPS.\n• Disconnect from public Wi-Fi.";
+        // --- 2. DOM DESTRUCTION ---
+        "edit_web": () => { document.designMode = "on"; return "<span class='success-text'>[+] DOM UNLOCKED: Type anywhere on this webpage.</span>"; },
+        "lock_web": () => { document.designMode = "off"; return "<span class='accent-text'>[-] DOM LOCKED.</span>"; },
+        "barrel_roll": () => { wrapper.style.transition = "transform 2s"; wrapper.style.transform = "rotate(360deg)"; setTimeout(()=>wrapper.style.transform="", 2000); return "DOING A BARREL ROLL."; },
+        "earthquake": () => { let i=0; const iv = setInterval(()=>{ wrapper.style.transform = `translate(${Math.random()*20-10}px, ${Math.random()*20-10}px)`; i++; if(i>20){clearInterval(iv); wrapper.style.transform="";}}, 50); return "<span class='accent-text'>SEISMIC ANOMALY DETECTED.</span>"; },
+        "invert": () => { document.body.style.filter = document.body.style.filter === "invert(1)" ? "" : "invert(1)"; return "POLARITY_TOGGLED."; },
+        "disco": () => { window.discoIv = setInterval(()=> document.body.style.filter = `hue-rotate(${Math.random()*360}deg)`, 100); return "RAVE PROTOCOL ACTIVE. Use 'stop_disco'."; },
+        "stop_disco": () => { clearInterval(window.discoIv); document.body.style.filter = ""; return "RAVE_HALTED."; },
+        "hide_cursor": () => { document.body.style.cursor = "none"; return "STEALTH_CURSOR_ACTIVE."; },
+        "show_cursor": () => { document.body.style.cursor = "default"; return "CURSOR_RESTORED."; },
 
-            try {
-                const res = await fetch(`https://ntfy.sh/${topic}`, {
-                    method: 'POST',
-                    body: alertMsg,
-                    headers: {
-                        'Title': '🚨 FORTRESS PROTOCOL ENGAGED 🚨',
-                        'Tags': 'rotating_light,skull',
-                        'Priority': '5', // Max priority bypasses silent mode
-                        'Warning': 'yes'
-                    }
-                });
+        // --- 3. HARDWARE & OS CONTROL ---
+        "battery": async () => { try { const b = await navigator.getBattery(); return `BATTERY: ${b.level*100}% | CHARGING: ${b.charging}`; } catch(e) { return "<span class='accent-text'>HARDWARE_LOCKED</span>"; } },
+        "vibrate": () => { navigator.vibrate([200, 100, 200, 100, 500]); return "HAPTIC_MOTORS_ENGAGED."; },
+        "voice": (msg) => { const u = new SpeechSynthesisUtterance(msg || "Super star override protocol accepted."); window.speechSynthesis.speak(u); return "TTS_ONLINE."; },
+        "cores": () => `CPU_LOGICAL_CORES: ${navigator.hardwareConcurrency || 'UNKNOWN'}`,
+        "memory": () => `RAM_HEAP_LIMIT: ${performance.memory ? performance.memory.jsHeapSizeLimit / 1048576 + ' MB' : 'DENIED'}`,
+        "platform": () => `OS_USER_AGENT: ${navigator.userAgent}`,
 
-                if (res.ok) return `<span style="color:var(--accent)">[+] FORTRESS_ACTIVE: Max-priority alarm triggered on target device.</span>`;
-                return `[!] FORTRESS_FAILED: Payload rejected.`;
-            } catch (err) { return `[!] NETWORK_ERR: ${err.message}`; }
+        // --- 4. LIVE DATA HEISTS ---
+        "iss_loc": async () => { const r = await fetch("http://api.open-notify.org/iss-now.json"); const d = await r.json(); return `🛰️ ISS_COORDS: LAT ${d.iss_position.latitude}, LON ${d.iss_position.longitude}`; },
+        "crypto_btc": async () => { const r = await fetch("https://api.coindesk.com/v1/bpi/currentprice.json"); const d = await r.json(); return `🪙 BTC_LIVE: $${d.bpi.USD.rate}`; },
+        "anime_quote": async () => { const r = await fetch("https://animechan.xyz/api/random"); const d = await r.json(); return `🗡️ ${d.character} (${d.anime}): "${d.quote}"`; },
+        "arise": () => { 
+            document.body.style.background = "#050014"; 
+            wrapper.style.borderColor = "#7b00ff";
+            wrapper.style.boxShadow = "0 20px 50px rgba(0,0,0,0.9), inset 0 0 25px rgba(123, 0, 255, 0.3)";
+            document.documentElement.style.setProperty('--cyan', '#b45cff');
+            return "<span style='color:#b45cff; font-weight:bold; text-shadow: 0 0 8px #b45cff'>SHADOW_ARMY_AWAKENED. ARISE.</span>"; 
         },
+        "pokemon": async (name) => { try { const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${name||'rayquaza'}`); const d = await r.json(); return `🐉 EVO_DATA: ${d.name.toUpperCase()} | TYPE: ${d.types[0].type.name} | HP: ${d.stats[0].base_stat}`; } catch(e){ return "<span class='accent-text'>ENTITY_NOT_FOUND</span>"; } },
+        "joke": async () => { const r = await fetch("https://official-joke-api.appspot.com/random_joke"); const d = await r.json(); return `🤡 ${d.setup} ... ${d.punchline}`; },
+        "fake_user": async () => { const r = await fetch("https://randomuser.me/api/"); const d = await r.json(); const u = d.results[0]; return `👤 IDENTITY_FORGED: ${u.name.first} ${u.name.last} | LOC: ${u.location.city}, ${u.location.country}`; },
 
-        // --- 3. LIVE IP GEOLOCATION ---
+        // --- 5. NETWORK & TRACKING ---
         "locate_ip": async (ip) => {
-            if (!ip) return "ERR: TARGET_IP_REQUIRED. Usage: locate_ip [ip_address]";
-            AETHER_KERNEL.printLine(`[>] TRACING ROUTE TO ${ip}...`);
+            if (!ip) return "<span class='accent-text'>ERR: TARGET_IP_REQUIRED</span>";
             try {
                 const res = await fetch(`https://ipapi.co/${ip}/json/`);
                 const data = await res.json();
-                if (data.error) return `[!] TRACE_FAILED: ${data.reason}`;
-                
-                return `<span style="color:var(--cyan)">[+] TARGET ACQUIRED</span><br>IP: ${data.ip}<br>ORG/ISP: ${data.org}<br>CITY: ${data.city}, ${data.region}<br>COUNTRY: ${data.country_name}<br>COORDINATES: ${data.latitude}, ${data.longitude}`;
-            } catch (err) { return `[!] NETWORK_ERR: ${err.message}`; }
+                if (data.error) return `<span class='accent-text'>[!] TRACE_FAILED: ${data.reason}</span>`;
+                return `<span class='success-text'>[+] TARGET ACQUIRED</span><br>IP: ${data.ip}<br>CITY: ${data.city}<br>ORG: ${data.org}`;
+            } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
         },
-
-        // --- 4. REAL YOUTUBE METADATA EXTRACTOR ---
-        "locate_media": async (videoId) => {
-            if (!videoId) return "ERR: VIDEO_ID_REQUIRED. Usage: locate_media [youtube_video_id]";
-            AETHER_KERNEL.printLine(`[>] EXTRACTING METADATA FROM YOUTUBE SERVERS...`);
+        "notify": async (args) => {
+            const parts = args.split(" ");
+            if (parts.length < 2) return "<span class='accent-text'>ERR: SYNTAX IS 'notify [topic] [message]'</span>";
+            const topic = parts[0]; 
+            const msg = parts.slice(1).join(" ");
             try {
-                if (YOUTUBE_API_KEY === "YOUR_REAL_YOUTUBE_API_KEY_HERE") return `[!] API_KEY_MISSING: Add your Google Cloud API key in kernel.js.`;
-                
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${YOUTUBE_API_KEY}`);
-                const data = await res.json();
-                
-                if (!data.items || data.items.length === 0) return "ERR: VIDEO_NOT_FOUND_OR_PRIVATE";
-                
-                const vid = data.items[0];
-                return `<span style="color:var(--cyan)">[+] MEDIA METADATA EXTRACTED</span><br>CHANNEL: ${vid.snippet.channelTitle}<br>PUBLISHED: ${new Date(vid.snippet.publishedAt).toLocaleString()}<br>VIEWS: ${parseInt(vid.statistics.viewCount).toLocaleString()}<br>LIKES: ${parseInt(vid.statistics.likeCount).toLocaleString()}`;
-            } catch (err) { return `[!] API_ERR: ${err.message}`; }
+                const res = await fetch(`https://ntfy.sh/${topic}`, { method: 'POST', body: msg, headers: { 'Title': 'AETHER-0', 'Priority': 'default' } });
+                if (res.ok) return `<span class='success-text'>[+] PUSH_DELIVERED TO /${topic}</span>`;
+                return `<span class='accent-text'>[!] PUSH_FAILED.</span>`;
+            } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
         },
 
-        // --- 5. DISCORD SERVER BROADCAST ---
-        "broadcast": async (args) => {
-            if (!args) return "ERR: MESSAGE_EMPTY";
-            if (DISCORD_WEBHOOK === "YOUR_REAL_DISCORD_WEBHOOK_URL_HERE") return "[!] WEBHOOK_MISSING: Add your Discord Webhook URL in kernel.js.";
-
-            AETHER_KERNEL.printLine(`[>] TRANSMITTING TO SECURE SERVER...`);
-            try {
-                const res = await fetch(DISCORD_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: `**[AETHER-0 TERMINAL]:** ${args}`, username: "Fox_Engine" })
-                });
-                if (res.ok) return "<span style="color:var(--cyan)">[+] TRANSMISSION_SUCCESSFUL: Message delivered to Discord.</span>";
-                return `[!] TRANSMISSION_FAILED: HTTP ${res.status}`;
-            } catch (err) { return `[!] NETWORK_ERR: ${err.message}`; }
-        },
-
-        // --- 6. REAL DOM MANIPULATION (UI SHREDDER) ---
-        "shred": (args) => {
-            if (!args) return "ERR: NO_TARGET_SELECTOR. Usage: shred [css_selector]";
-            const element = document.querySelector(args);
-            if (element) {
-                element.style.transition = "all 0.5s ease";
-                element.style.transform = "scale(0) rotate(180deg)";
-                element.style.opacity = "0";
-                setTimeout(() => element.remove(), 500);
-                return `TARGET_DESTROYED: ${args} removed from DOM.`;
-            }
-            return `ERR: TARGET_NOT_FOUND_IN_DOM`;
-        },
-
-        // --- 7. LIVE REPL (JAVASCRIPT EXECUTION ENGINE) ---
-        "exec": async (code) => {
-            if (!code) return "ERR: CODE_REQUIRED";
-            try { 
-                const result = await eval(`(async () => { return ${code} })()`); 
-                if (typeof result === 'object') return JSON.stringify(result, null, 2);
-                return String(result);
-            } 
-            catch (e) { return `[!] EXECUTION_ERROR: ${e.message}`; }
-        },
-
-        // --- 8. DYNAMIC PROTOCOL CREATOR ---
-        "create": (args) => {
-            if(!args.includes(" ")) return "ERR: SYNTAX IS 'create [name] [logic]'";
-            const newName = args.split(" ")[0];
-            const logic = args.substring(newName.length).trim();
-            
-            const customCmds = JSON.parse(localStorage.getItem('AETHER_CUSTOM') || '{}');
-            customCmds[newName] = logic;
-            localStorage.setItem('AETHER_CUSTOM', JSON.stringify(customCmds));
-            
-            AETHER_KERNEL.registry[newName] = () => logic;
-            return `[+] PROTOCOL_${newName.toUpperCase()} SAVED TO LOCAL STORAGE.`;
-        },
-
-        // --- 9. CARRIER LOOKUP (PLACEHOLDER FOR REAL API) ---
-        "locate_num": async (num) => {
-            if (!num) return "ERR: NUMBER_REQUIRED. Usage: locate_num [number]";
-            return `[!] UPLINK_REQUIRED: Insert a real NumVerify or Twilio Lookup API key in kernel.js to trace carrier routing for ${num}.`;
-        },
-
-        // --- SYSTEM CORE ---
+        // --- 6. CORE ---
+        "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR | LOC: TOKYO_JPN | ORG: WEBLOOM INC.",
         "clear": () => { output.innerHTML = ""; return ""; },
-        "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR | LOC: TOKYO_JPN",
-        "status": () => "AETHER-0 LIVE | UPLINK: SECURE | UI: GLASSMORPHISM",
-        "date": () => new Date().toLocaleString()
-    },
-
-    initCustomScripts() {
-        const custom = JSON.parse(localStorage.getItem('AETHER_CUSTOM') || '{}');
-        for (const [key, value] of Object.entries(custom)) {
-            this.registry[key] = () => value;
-        }
+        "help": () => "AVAILABLE_PROTOCOLS:<br>" + Object.keys(AETHER.registry).join(", ")
     },
 
     async execute(rawInput) {
         if (!rawInput.trim()) return;
         
-        // Command History
-        this.state.history.push(rawInput);
-        this.state.historyIndex = this.state.history.length;
+        this.history.push(rawInput);
+        this.historyIndex = this.history.length;
 
         const parts = rawInput.trim().split(/\s+/);
         const cmd = parts[0].toLowerCase();
         const args = parts.slice(1).join(" ");
 
-        this.printLine(`<span class="prompt">ROOT@AETHER0:~$</span> ${rawInput}`);
+        this.printLine(`<span class="prompt-text">ROOT@AETHER0:~$</span> ${rawInput}`);
 
         if (this.registry[cmd]) {
             try {
                 const result = await this.registry[cmd](args);
                 if (result) this.printLine(result);
             } catch (err) {
-                this.printLine(`[!] KERNEL_PANIC: ${err.message}`);
+                this.printLine(`<span class='accent-text'>[!] KERNEL_PANIC: ${err.message}</span>`);
             }
         } else {
-            this.printLine(`[!] UNKNOWN_PROTOCOL: '${cmd}'.`);
+            this.printLine(`<span class='accent-text'>[!] UNKNOWN_PROTOCOL: '${cmd}'</span>`);
         }
     },
 
@@ -208,65 +114,32 @@ const AETHER_KERNEL = {
     }
 };
 
-// --- INPUT EVENT LISTENERS ---
 input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-        AETHER_KERNEL.execute(input.value);
+        AETHER.execute(input.value);
         input.value = "";
     } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (AETHER_KERNEL.state.historyIndex > 0) {
-            AETHER_KERNEL.state.historyIndex--;
-            input.value = AETHER_KERNEL.state.history[AETHER_KERNEL.state.historyIndex];
+        if (AETHER.historyIndex > 0) {
+            AETHER.historyIndex--;
+            input.value = AETHER.history[AETHER.historyIndex];
         }
     } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        if (AETHER_KERNEL.state.historyIndex < AETHER_KERNEL.state.history.length - 1) {
-            AETHER_KERNEL.state.historyIndex++;
-            input.value = AETHER_KERNEL.state.history[AETHER_KERNEL.state.historyIndex];
+        if (AETHER.historyIndex < AETHER.history.length - 1) {
+            AETHER.historyIndex++;
+            input.value = AETHER.history[AETHER.historyIndex];
         } else {
-            AETHER_KERNEL.state.historyIndex = AETHER_KERNEL.state.history.length;
+            AETHER.historyIndex = AETHER.history.length;
             input.value = "";
         }
     }
 });
 
-// --- BOOT SEQUENCE ---
+document.addEventListener('click', () => input.focus());
+
 window.onload = () => {
-    AETHER_KERNEL.initCustomScripts();
-    AETHER_KERNEL.printLine("AETHER-0 LIVE API ENGINE [Fox Protocol Active]");
-    AETHER_KERNEL.printLine("WARNING: EXECUTING REAL NETWORK REQUESTS.");
+    AETHER.printLine("AETHER-0 GOD MODE ENGINE [Fox Protocol Active]");
+    AETHER.printLine("CSP OVERRIDE DETECTED VIA VERCEL.JSON. DIRECT JS INJECTION ALLOWED.");
+    AETHER.printLine("TYPE 'help' TO INITIATE.");
 };
-        // --- INITIALIZE REAL PYTHON IN THE BROWSER ---
-        let pyodideReady = false;
-        let pyodide = null;
-        
-        async function bootPythonCore() {
-            AETHER.printLine("[>] DOWNLOADING PYTHON WEBASSEMBLY KERNEL...");
-            try {
-                pyodide = await loadPyodide();
-                pyodideReady = true;
-                AETHER.printLine("<span class='success-text'>[+] Wasm CPYTHON ENVIRONMENT SECURED AND ACTIVE.</span>");
-            } catch (err) {
-                AETHER.printLine(`<span class='accent-text'>[!] WASM_ERR: ${err.message}</span>`);
-            }
-        }
-        
-        // Boot it right after the window loads
-        setTimeout(bootPythonCore, 1000);
-
-        // --- ADD THIS TO YOUR AETHER REGISTRY ---
-        // Command: py [python_code]
-        "py": async (code) => {
-            if (!code) return "<span class='accent-text'>ERR: PYTHON_CODE_REQUIRED</span>";
-            if (!pyodideReady) return "<span class='accent-text'>ERR: PYTHON_KERNEL_STILL_BOOTING</span>";
-            
-            try {
-                // Execute real Python directly in the browser memory
-                const pyResult = await pyodide.runPythonAsync(code);
-                return typeof pyResult !== 'undefined' ? `<span style="color:#f2e422;">PYTHON_OUT: ${pyResult}</span>` : "<span class='success-text'>[+] EXECUTED.</span>";
-            } catch (err) {
-                return `<span class='accent-text'>[!] PYTHON_TRACEBACK: ${err.message}</span>`;
-            }
-        },
-

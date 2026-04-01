@@ -1,129 +1,98 @@
-
 :root {
     --cyan: #00f2ff;
-    --hunter-red: #ff0055;
-    --matrix-green: #00ff41;
-    --bg-glass: rgba(10, 12, 16, 0.75);
-    --border-glow: rgba(0, 242, 255, 0.4);
-    --font-main: 'Consolas', 'Courier New', monospace;
+    --red: #ff0055;
+    --bg: #09090e;
+    --glass: rgba(15, 15, 25, 0.85);
+    --border: rgba(0, 242, 255, 0.3);
+    --text-main: #e0e0e0;
+    --font: 'Consolas', 'Courier New', monospace;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    background: #050505 radial-gradient(circle at center, #111 0%, #000 100%);
-    color: var(--cyan);
-    font-family: var(--font-main);
-    margin: 0;
+    background-color: var(--bg);
+    background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, var(--bg) 70%);
+    color: var(--text-main);
+    font-family: var(--font);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    transition: all 0.4s ease;
+    transition: all 0.5s ease;
 }
 
-/* Bi-Modal UI Shifts */
-body.matrix-mode { color: var(--matrix-green); --border-glow: rgba(0, 255, 65, 0.4); }
-body.hunter-mode { color: var(--hunter-red); --border-glow: rgba(255, 0, 85, 0.4); background: #0a0000; }
-
-/* The Sleek Glass Container */
-#terminal-container {
-    width: 90vw;
-    height: 85vh;
-    background: var(--bg-glass);
-    backdrop-filter: blur(25px) saturate(150%);
-    -webkit-backdrop-filter: blur(25px) saturate(150%);
-    border: 1px solid var(--border-glow);
-    border-radius: 16px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02);
+#terminal-wrapper {
+    width: 95vw;
+    height: 90vh;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,242,255,0.05);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    position: relative;
-    z-index: 10;
+    transition: all 0.5s ease;
 }
 
-/* Techbo Scanlines overlaying the glass */
-#terminal-container::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-    background-size: 100% 4px;
-    pointer-events: none;
-    z-index: 100;
-}
-
-/* Header Panel */
 #header {
-    background: rgba(0, 0, 0, 0.4);
-    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 15px 25px;
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
-    letter-spacing: 1.5px;
-    border-bottom: 1px solid var(--border-glow);
-    text-shadow: 0 0 8px currentColor;
+    color: var(--cyan);
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px var(--cyan);
+    border-radius: 12px 12px 0 0;
 }
 
-/* Output Area */
 #output {
     flex: 1;
-    padding: 24px;
+    padding: 25px;
     overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-glow) transparent;
     display: flex;
     flex-direction: column;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    scrollbar-width: none;
 }
+#output::-webkit-scrollbar { display: none; }
 
-#output::-webkit-scrollbar { width: 6px; }
-#output::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
-
-/* Line Animations */
 .line {
     margin-bottom: 8px;
-    line-height: 1.5;
-    text-shadow: 0 0 5px currentColor;
     opacity: 0;
-    animation: slideUp 0.3s ease forwards;
+    animation: fadeIn 0.2s ease forwards;
+    word-wrap: break-word;
 }
 
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-5px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
-.prompt { font-weight: bold; margin-right: 12px; opacity: 0.8; }
+.prompt-text { color: var(--cyan); font-weight: bold; margin-right: 10px; text-shadow: 0 0 5px var(--cyan); }
+.accent-text { color: var(--red); font-weight: bold; text-shadow: 0 0 5px var(--red); }
+.success-text { color: #00ff41; font-weight: bold; text-shadow: 0 0 5px #00ff41; }
 
-/* Input Area */
 #input-area {
+    padding: 20px 25px;
     background: rgba(0, 0, 0, 0.5);
-    padding: 18px 24px;
+    border-top: 1px solid rgba(255,255,255,0.05);
     display: flex;
     align-items: center;
-    border-top: 1px solid rgba(255,255,255,0.05);
+    border-radius: 0 0 12px 12px;
 }
 
 #cmd-input {
     background: transparent;
     border: none;
-    color: inherit;
+    color: var(--cyan);
     font-family: inherit;
     font-size: 1.1rem;
     width: 100%;
     outline: none;
-    text-shadow: 0 0 5px currentColor;
+    text-shadow: 0 0 5px var(--cyan);
 }
-
-/* Glitch Effect */
-@keyframes glitch {
-    0% { transform: translate(0); }
-    20% { transform: translate(-4px, 2px); filter: hue-rotate(90deg); }
-    40% { transform: translate(-4px, -2px); }
-    60% { transform: translate(4px, 2px); filter: invert(1); }
-    80% { transform: translate(4px, -2px); }
-    100% { transform: translate(0); }
-}
-.glitch-active { animation: glitch 0.15s linear infinite; }

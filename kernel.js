@@ -194,115 +194,128 @@ const AETHER = {
         "clear": () => { output.innerHTML = ""; return ""; },
         "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", "),
         
-        // --- 12. DOMAIN EXPANSION ---
+                // --- 12. DOMAIN EXPANSION (V2 - CINEMATIC OVERRIDE) ---
         "domain_expansion": () => {
-            // Nuke the existing DOM
-            document.body.innerHTML = "";
-            document.body.style.backgroundColor = "#000000";
+            // Lock scrolling and prep the canvas
             document.body.style.overflow = "hidden";
+            
+            // Phase 1: The Audio Design (High-pitch ring -> Deep Bass Drop)
+            try {
+                const actx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // The Activation Ring
+                const ring = actx.createOscillator();
+                ring.type = 'sine';
+                ring.frequency.setValueAtTime(3000, actx.currentTime);
+                ring.frequency.exponentialRampToValueAtTime(8000, actx.currentTime + 0.8);
+                ring.connect(actx.destination);
+                ring.start();
+                setTimeout(() => ring.stop(), 800);
+                
+                // The Void Bass
+                setTimeout(() => {
+                    const bass = actx.createOscillator();
+                    bass.type = 'sawtooth';
+                    bass.frequency.setValueAtTime(50, actx.currentTime);
+                    bass.frequency.exponentialRampToValueAtTime(10, actx.currentTime + 2.5);
+                    bass.connect(actx.destination);
+                    bass.start();
+                    setTimeout(() => bass.stop(), 3000);
+                }, 800);
+            } catch(e) {}
 
-            // Inject aggressive CSS glitch animations
+            // Phase 2: The Visual Physics
             const style = document.createElement('style');
             style.innerHTML = `
-                @keyframes glitch-anim {
-                    0% { transform: translate(0) }
-                    20% { transform: translate(-5px, 5px) }
-                    40% { transform: translate(-5px, -5px) }
-                    60% { transform: translate(5px, 5px) }
-                    80% { transform: translate(5px, -5px) }
-                    100% { transform: translate(0) }
+                @keyframes flash-bang {
+                    0% { background-color: white; opacity: 1; }
+                    80% { background-color: white; opacity: 1; }
+                    100% { background-color: transparent; opacity: 0; }
                 }
-                @keyframes static-noise {
-                    0% { opacity: 0.1; }
-                    50% { opacity: 0.3; }
-                    100% { opacity: 0.1; }
+                @keyframes sphere-expand {
+                    0% { transform: translate(-50%, -50%) scale(0); border: 2px solid white; background: transparent; }
+                    50% { border: 15px solid #b45cff; background: rgba(180, 92, 255, 0.3); box-shadow: 0 0 50px #b45cff; }
+                    100% { transform: translate(-50%, -50%) scale(100); border: 2px solid black; background: black; }
                 }
-                .void-text {
-                    color: white;
-                    font-family: monospace;
-                    font-size: 3rem;
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    text-shadow: 4px 0px #ff003c, -4px 0px #00e5ff;
-                    animation: glitch-anim 0.1s infinite;
-                    white-space: nowrap;
-                    text-align: center;
-                    z-index: 10;
+                @keyframes text-glitch {
+                    0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 2px); }
+                    20% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -2px); }
+                    40% { clip-path: inset(30% 0 50% 0); transform: translate(-2px, 0); }
+                    60% { clip-path: inset(50% 0 30% 0); transform: translate(2px, 2px); }
+                    80% { clip-path: inset(10% 0 60% 0); transform: translate(-1px, -1px); }
+                    100% { clip-path: inset(0 0 0 0); transform: translate(0); }
                 }
-                .void-bg {
-                    width: 100vw; 
-                    height: 100vh;
-                    background: radial-gradient(circle, rgba(20,0,40,1) 0%, rgba(0,0,0,1) 80%);
-                    position: absolute; 
-                    top: 0; 
-                    left: 0;
-                    animation: static-noise 0.05s infinite;
+                @keyframes float-up {
+                    0% { transform: translateY(100vh); opacity: 1; }
+                    100% { transform: translateY(-10vh); opacity: 0; }
+                }
+                .flash {
+                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                    z-index: 10000; animation: flash-bang 0.8s cubic-bezier(0.1, 0.8, 0.1, 1) forwards;
+                    pointer-events: none;
+                }
+                .sphere {
+                    position: fixed; top: 50%; left: 50%; width: 5vmin; height: 5vmin;
+                    border-radius: 50%; z-index: 9998;
+                    animation: sphere-expand 1s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+                    animation-delay: 0.2s; pointer-events: none; opacity: 0;
+                }
+                .void-core {
+                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                    background: #000; z-index: 9997; opacity: 0;
+                    animation: fadeIn 0s linear 1s forwards;
+                }
+                @keyframes fadeIn { to { opacity: 1; } }
+                
+                .jujutsu-text {
+                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    color: white; font-family: monospace; font-size: 10vw;
+                    font-weight: bold; text-align: center; white-space: nowrap; z-index: 9999;
+                    text-shadow: -4px 0px #ff003c, 4px 0px #00e5ff, 0 0 20px rgba(255,255,255,0.5);
+                    opacity: 0; animation: fadeIn 0s linear 1.2s forwards, text-glitch 0.15s infinite 1.2s;
+                }
+                .debris {
+                    position: absolute; color: #b45cff; font-family: monospace;
+                    font-size: 1.2rem; z-index: 9998; opacity: 0;
+                    text-shadow: 0 0 5px #7b00ff;
+                    animation: fadeIn 0s linear 1s forwards, float-up linear infinite;
                 }
             `;
             document.head.appendChild(style);
 
-            // Construct the Void
-            const bg = document.createElement('div');
-            bg.className = 'void-bg';
+            // Wipe the DOM clean
+            document.body.innerHTML = "";
+            document.body.style.backgroundColor = "black";
 
-            const text = document.createElement('div');
-            text.className = 'void-text';
-            text.innerHTML = "DOMAIN EXPANSION<br><br>INFINITE VOID";
-
-            document.body.appendChild(bg);
+            // Inject the elements
+            const flash = document.createElement('div'); flash.className = 'flash';
+            const sphere = document.createElement('div'); sphere.className = 'sphere';
+            const voidCore = document.createElement('div'); voidCore.className = 'void-core';
+            
+            const text = document.createElement('div'); 
+            text.className = 'jujutsu-text';
+            text.innerHTML = "無量空処<br>INFINITE VOID"; 
+            
+            document.body.appendChild(flash);
+            document.body.appendChild(sphere);
+            document.body.appendChild(voidCore);
             document.body.appendChild(text);
 
-            // Deep bass frequency drop
-            try {
-                const actx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = actx.createOscillator();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(30, actx.currentTime); // Sub-bass frequency
-                osc.connect(actx.destination);
-                osc.start();
-                setTimeout(() => osc.stop(), 2500);
-            } catch(e) { 
-                // Silently fail if audio context is blocked
+            // Generate floating corrupted data debris
+            for(let i = 0; i < 40; i++) {
+                let d = document.createElement('div');
+                d.className = 'debris';
+                // Random hex generator
+                d.innerText = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+                d.style.left = (Math.random() * 100) + 'vw';
+                d.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                d.style.animationDelay = (Math.random() * 1.5 + 1) + 's';
+                document.body.appendChild(d);
             }
 
             return "";
         }
-    },
 
-    async execute(rawInput) {
-        if (!rawInput.trim()) return;
-
-        this.history.push(rawInput);
-        this.historyIndex = this.history.length;
-
-        const parts = rawInput.trim().split(/\s+/);
-        const cmd = parts[0].toLowerCase();
-        const args = parts.slice(1).join(" ");
-
-        this.printLine(`<span class="prompt-text">ROOT@AETHER0:~$</span> ${rawInput}`);
-
-        if (this.registry[cmd]) {
-            try {
-                const result = await this.registry[cmd](args);
-                if (result) this.printLine(result);
-            } catch (err) {
-                this.printLine(`<span class='accent-text'>[!] KERNEL_PANIC: ${err.message}</span>`);
-            }
-        } else {
-            this.printLine(`<span class='accent-text'>[!] UNKNOWN_PROTOCOL: '${cmd}'</span>`);
-        }
-    },
-
-    printLine(text) {
-        const line = document.createElement('div');
-        line.className = 'line';
-        line.innerHTML = text;
-        output.appendChild(line);
-        output.scrollTop = output.scrollHeight;
-    }
-};
 
 // --- MOBILE-OPTIMIZED INPUT LISTENER ---
 input.addEventListener('keyup', (e) => {

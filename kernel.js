@@ -65,7 +65,7 @@ const AETHER = {
             if (parts.length < 2) return "<span class='accent-text'>Usage: sony_power [local_ip] [psk_key]</span>";
             const ip = parts[0];
             const psk = parts[1];
-            
+
             const payload = `<?xml version="1.0"?>
             <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
                 <s:Body>
@@ -192,12 +192,88 @@ const AETHER = {
         // --- 8. SYSTEM CORE ---
         "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR<br>ORIGIN: TOKYO_JPN | LOCAL_NODE: KADAYANALLUR_IND<br>ORG: WEBLOOM INC.",
         "clear": () => { output.innerHTML = ""; return ""; },
-        "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", ")
+        "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", "),
+        
+        // --- 12. DOMAIN EXPANSION ---
+        "domain_expansion": () => {
+            // Nuke the existing DOM
+            document.body.innerHTML = "";
+            document.body.style.backgroundColor = "#000000";
+            document.body.style.overflow = "hidden";
+
+            // Inject aggressive CSS glitch animations
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes glitch-anim {
+                    0% { transform: translate(0) }
+                    20% { transform: translate(-5px, 5px) }
+                    40% { transform: translate(-5px, -5px) }
+                    60% { transform: translate(5px, 5px) }
+                    80% { transform: translate(5px, -5px) }
+                    100% { transform: translate(0) }
+                }
+                @keyframes static-noise {
+                    0% { opacity: 0.1; }
+                    50% { opacity: 0.3; }
+                    100% { opacity: 0.1; }
+                }
+                .void-text {
+                    color: white;
+                    font-family: monospace;
+                    font-size: 3rem;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    text-shadow: 4px 0px #ff003c, -4px 0px #00e5ff;
+                    animation: glitch-anim 0.1s infinite;
+                    white-space: nowrap;
+                    text-align: center;
+                    z-index: 10;
+                }
+                .void-bg {
+                    width: 100vw; 
+                    height: 100vh;
+                    background: radial-gradient(circle, rgba(20,0,40,1) 0%, rgba(0,0,0,1) 80%);
+                    position: absolute; 
+                    top: 0; 
+                    left: 0;
+                    animation: static-noise 0.05s infinite;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Construct the Void
+            const bg = document.createElement('div');
+            bg.className = 'void-bg';
+
+            const text = document.createElement('div');
+            text.className = 'void-text';
+            text.innerHTML = "DOMAIN EXPANSION<br><br>INFINITE VOID";
+
+            document.body.appendChild(bg);
+            document.body.appendChild(text);
+
+            // Deep bass frequency drop
+            try {
+                const actx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = actx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(30, actx.currentTime); // Sub-bass frequency
+                osc.connect(actx.destination);
+                osc.start();
+                setTimeout(() => osc.stop(), 2500);
+            } catch(e) { 
+                // Silently fail if audio context is blocked
+            }
+
+            return "";
+        }
     },
 
     async execute(rawInput) {
         if (!rawInput.trim()) return;
-        
+
         this.history.push(rawInput);
         this.historyIndex = this.history.length;
 
@@ -269,80 +345,4 @@ window.onload = () => {
     AETHER.printLine("AETHER-0 GOD MODE ENGINE [Fox Protocol Active]");
     AETHER.printLine("BLUETOOTH, LAN & DOM INJECTION PROTOCOLS ONLINE.");
     AETHER.printLine("MOBILE INPUT OVERRIDE ACTIVE. TYPE 'help' TO INITIATE.");
-        // --- 12. DOMAIN EXPANSION ---
-        "domain_expansion": () => {
-            // Nuke the existing DOM
-            document.body.innerHTML = "";
-            document.body.style.backgroundColor = "#000000";
-            document.body.style.overflow = "hidden";
-            
-            // Inject aggressive CSS glitch animations
-            const style = document.createElement('style');
-            style.innerHTML = `
-                @keyframes glitch-anim {
-                    0% { transform: translate(0) }
-                    20% { transform: translate(-5px, 5px) }
-                    40% { transform: translate(-5px, -5px) }
-                    60% { transform: translate(5px, 5px) }
-                    80% { transform: translate(5px, -5px) }
-                    100% { transform: translate(0) }
-                }
-                @keyframes static-noise {
-                    0% { opacity: 0.1; }
-                    50% { opacity: 0.3; }
-                    100% { opacity: 0.1; }
-                }
-                .void-text {
-                    color: white;
-                    font-family: monospace;
-                    font-size: 3rem;
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    text-shadow: 4px 0px #ff003c, -4px 0px #00e5ff;
-                    animation: glitch-anim 0.1s infinite;
-                    white-space: nowrap;
-                    text-align: center;
-                    z-index: 10;
-                }
-                .void-bg {
-                    width: 100vw; 
-                    height: 100vh;
-                    background: radial-gradient(circle, rgba(20,0,40,1) 0%, rgba(0,0,0,1) 80%);
-                    position: absolute; 
-                    top: 0; 
-                    left: 0;
-                    animation: static-noise 0.05s infinite;
-                }
-            `;
-            document.head.appendChild(style);
-            
-            // Construct the Void
-            const bg = document.createElement('div');
-            bg.className = 'void-bg';
-            
-            const text = document.createElement('div');
-            text.className = 'void-text';
-            text.innerHTML = "DOMAIN EXPANSION<br><br>INFINITE VOID";
-            
-            document.body.appendChild(bg);
-            document.body.appendChild(text);
-
-            // Deep bass frequency drop
-            try {
-                const actx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = actx.createOscillator();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(30, actx.currentTime); // Sub-bass frequency
-                osc.connect(actx.destination);
-                osc.start();
-                setTimeout(() => osc.stop(), 2500);
-            } catch(e) { 
-                // Silently fail if audio context is blocked
-            }
-
-            return "";
-        },
-
 };

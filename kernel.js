@@ -314,6 +314,38 @@ const AETHER = {
             }
 
             return "";
+        },
+
+        // --- 13. OSINT: TELECOM TRACER ---
+        "trace_no": async (phone) => {
+            if (!phone) return "<span class='accent-text'>Usage: trace_no [+CountryCode][Number] (e.g., trace_no +919876543210)</span>";
+            
+            // Format check to ensure the '+' is there for the API
+            const cleanPhone = phone.startsWith('+') ? phone : '+' + phone;
+            AETHER.printLine(`[>] INTERROGATING TELECOM ROUTING TABLES FOR ${cleanPhone}...`);
+            
+            try {
+                // Simulating network latency
+                await new Promise(resolve => setTimeout(resolve, 1500)); 
+                
+                let country = "UNKNOWN";
+                let carrier = "ENCRYPTED NODE";
+                
+                if(cleanPhone.startsWith("+91")) { country = "INDIA (IN)"; carrier = "Jio / Airtel / Vi"; }
+                else if(cleanPhone.startsWith("+1")) { country = "USA / CANADA"; carrier = "AT&T / Verizon"; }
+                else if(cleanPhone.startsWith("+81")) { country = "JAPAN (JP)"; carrier = "NTT Docomo / SoftBank"; }
+                else if(cleanPhone.startsWith("+44")) { country = "UNITED KINGDOM"; carrier = "Vodafone / EE"; }
+                else { country = "INTERNATIONAL ZONE"; }
+
+                return `<span class='success-text'>[+] OSINT EXTRACTION COMPLETE.</span><br>
+                        TARGET: <span style='color:#00e5ff;'>${cleanPhone}</span><br>
+                        REGION: ${country}<br>
+                        NETWORK TIER: Mobile / Cellular<br>
+                        CARRIER: ${carrier}<br>
+                        <br><span style='color:gray; font-size: 0.8em;'>* SS7 Firewall Active. Exact GPS coordinates and Identity masked by telecom provider.</span>`;
+            } catch (err) {
+                return `<span class='accent-text'>[!] NETWORK_ERR: CONNECTION REFUSED BY TELECOM NODE.</span>`;
+            }
         }
     },
 

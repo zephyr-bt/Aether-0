@@ -210,6 +210,58 @@ input.addEventListener('keydown', (e) => {
 
 // Auto-focus input when clicking terminal
 document.addEventListener('click', () => input.focus());
+        // --- SONY BRAVIA IP CONTROLLER ---
+        "sony_power": async (args) => {
+            const parts = args.split(" ");
+            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_power [local_ip] [psk_key]</span>";
+            const ip = parts[0];
+            const psk = parts[1]; // The code you set on the TV (e.g., 0000)
+            
+            // Raw SOAP XML payload for the Power Toggle command
+            const payload = `<?xml version="1.0"?>
+            <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                <s:Body>
+                    <u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1">
+                        <IRCCCode>AAAAAQAAAAEAAAAVAw==</IRCCCode>
+                    </u:X_SendIRCC>
+                </s:Body>
+            </s:Envelope>`;
+
+            try {
+                AETHER.printLine(`[>] TRANSMITTING IRCC XML PAYLOAD TO ${ip}...`);
+                await fetch(`http://${ip}/sony/IRCC`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Auth-PSK': psk,
+                        'Content-Type': 'text/xml; charset=utf-8',
+                        'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"'
+                    },
+                    body: payload
+                });
+                return `<span class='success-text'>[+] BRAVIA OVERRIDDEN. POWER TOGGLED.</span>`;
+            } catch(e) { 
+                return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}<br>(Note: If fetching from a browser, CORS may block custom headers. Use a CORS-unblock extension or the native Python bridge).</span>`; 
+            }
+        },
+
+        "sony_mute": async (args) => {
+            const parts = args.split(" ");
+            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_mute [local_ip] [psk_key]</span>";
+            const ip = parts[0];
+            const psk = parts[1];
+            
+            const payload = `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1"><IRCCCode>AAAAAQAAAAEAAAAUAw==</IRCCCode></u:X_SendIRCC></s:Body></s:Envelope>`;
+
+            try {
+                await fetch(`http://${ip}/sony/IRCC`, {
+                    method: 'POST',
+                    headers: { 'X-Auth-PSK': psk, 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"' },
+                    body: payload
+                });
+                return `<span class='success-text'>[+] BRAVIA AUDIO MUTED.</span>`;
+            } catch(e) { return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}</span>`; }
+        },
+
 
 // --- BOOT SEQUENCE ---
 window.onload = () => {
@@ -217,3 +269,4 @@ window.onload = () => {
     AETHER.printLine("BLUETOOTH, LAN & DOM INJECTION PROTOCOLS ONLINE.");
     AETHER.printLine("TYPE 'help' TO INITIATE.");
 };
+

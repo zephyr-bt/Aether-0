@@ -194,123 +194,133 @@ const AETHER = {
         "clear": () => { output.innerHTML = ""; return ""; },
         "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", "),
 
-        // --- 12. DOMAIN EXPANSION (V2 - CINEMATIC OVERRIDE) ---
-        "domain_expansion": () => {
-            // Lock scrolling and prep the canvas
-            document.body.style.overflow = "hidden";
+        // --- 12. SYSTEM MELTDOWN (THE "FUNNY" PROTOCOL) ---
+        "funny": () => {
+            // Force fullscreen if possible to trap the UI
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen denied"));
+            }
             
-            // Phase 1: The Audio Design (High-pitch ring -> Deep Bass Drop)
+            // Audio Assault: Dual-tone high frequency blare (Ear-piercing)
             try {
                 const actx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc1 = actx.createOscillator();
+                const osc2 = actx.createOscillator();
+                const gain = actx.createGain();
                 
-                // The Activation Ring
-                const ring = actx.createOscillator();
-                ring.type = 'sine';
-                ring.frequency.setValueAtTime(3000, actx.currentTime);
-                ring.frequency.exponentialRampToValueAtTime(8000, actx.currentTime + 0.8);
-                ring.connect(actx.destination);
-                ring.start();
-                setTimeout(() => ring.stop(), 800);
+                osc1.type = 'square';
+                osc2.type = 'square';
                 
-                // The Void Bass
-                setTimeout(() => {
-                    const bass = actx.createOscillator();
-                    bass.type = 'sawtooth';
-                    bass.frequency.setValueAtTime(50, actx.currentTime);
-                    bass.frequency.exponentialRampToValueAtTime(10, actx.currentTime + 2.5);
-                    bass.connect(actx.destination);
-                    bass.start();
-                    setTimeout(() => bass.stop(), 3000);
-                }, 800);
+                // Classic alternating alarm frequencies
+                setInterval(() => {
+                    osc1.frequency.setValueAtTime(800, actx.currentTime);
+                    osc1.frequency.setValueAtTime(1200, actx.currentTime + 0.2);
+                }, 400);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(actx.destination);
+                
+                // Max volume the browser allows
+                gain.gain.value = 1; 
+                
+                osc1.start();
+                osc2.start();
+                
+                // Kill the sound after 5 seconds to prevent actual hearing damage
+                setTimeout(() => { osc1.stop(); osc2.stop(); }, 5000);
             } catch(e) {}
 
-            // Phase 2: The Visual Physics
+            // The Visual Hack
             const style = document.createElement('style');
             style.innerHTML = `
-                @keyframes flash-bang {
-                    0% { background-color: white; opacity: 1; }
-                    80% { background-color: white; opacity: 1; }
-                    100% { background-color: transparent; opacity: 0; }
+                @keyframes violent-shake {
+                    0% { transform: translate(2px, 1px) rotate(0deg); }
+                    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+                    20% { transform: translate(-3px, 0px) rotate(1deg); }
+                    30% { transform: translate(0px, 2px) rotate(0deg); }
+                    40% { transform: translate(1px, -1px) rotate(1deg); }
+                    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+                    60% { transform: translate(-3px, 1px) rotate(0deg); }
+                    70% { transform: translate(2px, 1px) rotate(-1deg); }
+                    80% { transform: translate(-1px, -1px) rotate(1deg); }
+                    90% { transform: translate(2px, 2px) rotate(0deg); }
+                    100% { transform: translate(1px, -2px) rotate(-1deg); }
                 }
-                @keyframes sphere-expand {
-                    0% { transform: translate(-50%, -50%) scale(0); border: 2px solid white; background: transparent; }
-                    50% { border: 15px solid #b45cff; background: rgba(180, 92, 255, 0.3); box-shadow: 0 0 50px #b45cff; }
-                    100% { transform: translate(-50%, -50%) scale(100); border: 2px solid black; background: black; }
+                @keyframes flash-red {
+                    0%, 100% { background-color: #000; }
+                    50% { background-color: #500000; }
                 }
-                @keyframes text-glitch {
-                    0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 2px); }
-                    20% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -2px); }
-                    40% { clip-path: inset(30% 0 50% 0); transform: translate(-2px, 0); }
-                    60% { clip-path: inset(50% 0 30% 0); transform: translate(2px, 2px); }
-                    80% { clip-path: inset(10% 0 60% 0); transform: translate(-1px, -1px); }
-                    100% { clip-path: inset(0 0 0 0); transform: translate(0); }
-                }
-                @keyframes float-up {
-                    0% { transform: translateY(100vh); opacity: 1; }
-                    100% { transform: translateY(-10vh); opacity: 0; }
-                }
-                .flash {
+                .hack-screen {
                     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                    z-index: 10000; animation: flash-bang 0.8s cubic-bezier(0.1, 0.8, 0.1, 1) forwards;
-                    pointer-events: none;
+                    background-color: #000; z-index: 10000; overflow: hidden;
+                    animation: flash-red 0.5s infinite;
                 }
-                .sphere {
-                    position: fixed; top: 50%; left: 50%; width: 5vmin; height: 5vmin;
-                    border-radius: 50%; z-index: 9998;
-                    animation: sphere-expand 1s cubic-bezier(0.7, 0, 0.2, 1) forwards;
-                    animation-delay: 0.2s; pointer-events: none; opacity: 0;
+                .hack-wrapper {
+                    padding: 20px; animation: violent-shake 0.3s infinite;
                 }
-                .void-core {
-                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                    background: #000; z-index: 9997; opacity: 0;
-                    animation: fadeIn 0s linear 1s forwards;
+                .hack-header {
+                    color: #ff0000; font-family: monospace; font-size: 3rem; font-weight: bold;
+                    text-align: center; text-shadow: 0 0 20px #ff0000; border: 5px solid #ff0000;
+                    padding: 20px; margin-top: 10vh; background: rgba(255,0,0,0.1);
                 }
-                @keyframes fadeIn { to { opacity: 1; } }
-                
-                .jujutsu-text {
-                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                    color: white; font-family: monospace; font-size: 10vw;
-                    font-weight: bold; text-align: center; white-space: nowrap; z-index: 9999;
-                    text-shadow: -4px 0px #ff003c, 4px 0px #00e5ff, 0 0 20px rgba(255,255,255,0.5);
-                    opacity: 0; animation: fadeIn 0s linear 1.2s forwards, text-glitch 0.15s infinite 1.2s;
-                }
-                .debris {
-                    position: absolute; color: #b45cff; font-family: monospace;
-                    font-size: 1.2rem; z-index: 9998; opacity: 0;
-                    text-shadow: 0 0 5px #7b00ff;
-                    animation: fadeIn 0s linear 1s forwards, float-up linear infinite;
+                .hack-console {
+                    color: #ff3333; font-family: monospace; font-size: 1.2rem;
+                    margin-top: 30px; line-height: 1.5; white-space: pre-wrap;
                 }
             `;
             document.head.appendChild(style);
 
-            // Wipe the DOM clean
+            // Wipe the DOM and inject the payload
             document.body.innerHTML = "";
-            document.body.style.backgroundColor = "black";
-
-            // Inject the elements
-            const flash = document.createElement('div'); flash.className = 'flash';
-            const sphere = document.createElement('div'); sphere.className = 'sphere';
-            const voidCore = document.createElement('div'); voidCore.className = 'void-core';
             
-            const text = document.createElement('div'); 
-            text.className = 'jujutsu-text';
-            text.innerHTML = "無量空処<br>INFINITE VOID"; 
+            const hackScreen = document.createElement('div');
+            hackScreen.className = 'hack-screen';
             
-            document.body.appendChild(flash);
-            document.body.appendChild(sphere);
-            document.body.appendChild(voidCore);
-            document.body.appendChild(text);
+            const hackWrapper = document.createElement('div');
+            hackWrapper.className = 'hack-wrapper';
+            
+            const header = document.createElement('div');
+            header.className = 'hack-header';
+            header.innerHTML = "CRITICAL SYSTEM COMPROMISE<br>UNAUTHORIZED ROOT ACCESS DETECTED";
+            
+            const consoleDiv = document.createElement('div');
+            consoleDiv.className = 'hack-console';
+            consoleDiv.id = 'fake-console';
+            
+            hackWrapper.appendChild(header);
+            hackWrapper.appendChild(consoleDiv);
+            hackScreen.appendChild(hackWrapper);
+            document.body.appendChild(hackScreen);
 
-            // Generate floating corrupted data debris
-            for(let i = 0; i < 40; i++) {
-                let d = document.createElement('div');
-                d.className = 'debris';
-                // Random hex generator
-                d.innerText = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
-                d.style.left = (Math.random() * 100) + 'vw';
-                d.style.animationDuration = (Math.random() * 2 + 1) + 's';
-                d.style.animationDelay = (Math.random() * 1.5 + 1) + 's';
-                document.body.appendChild(d);
+            // Simulate rapidly scrolling stolen data
+            const lines = [
+                "Extracting local RSA Keys...",
+                "Bypassing Firewall Node 7...",
+                "Downloading /etc/shadow...",
+                "Dumping browser cache...",
+                "Purging system logs...",
+                "Encrypting file system - AES256...",
+                "WARNING: KERNEL PANIC DETECTED...",
+                "OVERRIDING HARDWARE CONTROLS...",
+                "Uplink established to external node."
+            ];
+
+            let lineIndex = 0;
+            const scrollInterval = setInterval(() => {
+                const p = document.createElement('div');
+                // Randomly add hex strings to look technical
+                const hex = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+                p.innerText = `[${hex}] > ${lines[lineIndex % lines.length]}`;
+                consoleDiv.appendChild(p);
+                lineIndex++;
+                if (lineIndex > 100) clearInterval(scrollInterval); // stop after 100 lines
+            }, 50);
+
+            // Haptic assault
+            if ("vibrate" in navigator) {
+                // Vibrate violently in a chaotic pattern
+                navigator.vibrate([100, 50, 100, 50, 200, 50, 300, 100, 500, 50, 100, 50]);
             }
 
             return "";
@@ -319,33 +329,49 @@ const AETHER = {
         // --- 13. OSINT: TELECOM TRACER ---
         "trace_no": async (phone) => {
             if (!phone) return "<span class='accent-text'>Usage: trace_no [+CountryCode][Number] (e.g., trace_no +919876543210)</span>";
-            
-            // Format check to ensure the '+' is there for the API
             const cleanPhone = phone.startsWith('+') ? phone : '+' + phone;
             AETHER.printLine(`[>] INTERROGATING TELECOM ROUTING TABLES FOR ${cleanPhone}...`);
-            
             try {
-                // Simulating network latency
                 await new Promise(resolve => setTimeout(resolve, 1500)); 
-                
-                let country = "UNKNOWN";
-                let carrier = "ENCRYPTED NODE";
-                
+                let country = "UNKNOWN"; let carrier = "ENCRYPTED NODE";
                 if(cleanPhone.startsWith("+91")) { country = "INDIA (IN)"; carrier = "Jio / Airtel / Vi"; }
                 else if(cleanPhone.startsWith("+1")) { country = "USA / CANADA"; carrier = "AT&T / Verizon"; }
                 else if(cleanPhone.startsWith("+81")) { country = "JAPAN (JP)"; carrier = "NTT Docomo / SoftBank"; }
                 else if(cleanPhone.startsWith("+44")) { country = "UNITED KINGDOM"; carrier = "Vodafone / EE"; }
                 else { country = "INTERNATIONAL ZONE"; }
+                return `<span class='success-text'>[+] OSINT EXTRACTION COMPLETE.</span><br>TARGET: <span style='color:#00e5ff;'>${cleanPhone}</span><br>REGION: ${country}<br>NETWORK TIER: Mobile / Cellular<br>CARRIER: ${carrier}<br><br><span style='color:gray; font-size: 0.8em;'>* SS7 Firewall Active. Exact GPS coordinates and Identity masked by telecom provider.</span>`;
+            } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR: CONNECTION REFUSED BY TELECOM NODE.</span>`; }
+        },
 
-                return `<span class='success-text'>[+] OSINT EXTRACTION COMPLETE.</span><br>
-                        TARGET: <span style='color:#00e5ff;'>${cleanPhone}</span><br>
-                        REGION: ${country}<br>
-                        NETWORK TIER: Mobile / Cellular<br>
-                        CARRIER: ${carrier}<br>
-                        <br><span style='color:gray; font-size: 0.8em;'>* SS7 Firewall Active. Exact GPS coordinates and Identity masked by telecom provider.</span>`;
-            } catch (err) {
-                return `<span class='accent-text'>[!] NETWORK_ERR: CONNECTION REFUSED BY TELECOM NODE.</span>`;
+        // --- 14. SOLO LEVELING SYSTEM HUD ---
+        "system_link": () => {
+            if(document.getElementById('solo-hud')) return "<span class='accent-text'>SYSTEM ALREADY ACTIVE.</span>";
+            const hud = document.createElement('div');
+            hud.id = 'solo-hud';
+            hud.innerHTML = `
+                <div style="border: 2px solid #00e5ff; background: rgba(0, 10, 20, 0.85); box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); color: #00e5ff; font-family: 'Courier New', monospace; padding: 15px; width: 280px; position: fixed; top: 20px; right: 20px; z-index: 9999; border-radius: 8px; backdrop-filter: blur(5px);">
+                    <h3 style="margin: 0 0 10px 0; text-align: center; border-bottom: 1px solid #00e5ff; padding-bottom: 5px; text-shadow: 0 0 8px #00e5ff;">STATUS WINDOW</h3>
+                    <p style="margin: 5px 0;"><b>NAME:</b> FAHAD MALIK</p>
+                    <p style="margin: 5px 0;"><b>JOB:</b> SYSTEM ARCHITECT</p>
+                    <p style="margin: 5px 0;"><b>TITLE:</b> SUPER_STAR</p>
+                    <p style="margin: 5px 0;"><b>LEVEL:</b> 99</p>
+                    <div style="margin-top: 15px;">
+                        <div style="margin-bottom: 8px; font-weight: bold;">HP: <div style="display:inline-block; width: 80%; background:#111; border:1px solid #00e5ff; height:12px; border-radius: 2px;"><div style="width:100%; background:#00e5ff; height:100%; box-shadow: 0 0 8px #00e5ff;"></div></div></div>
+                        <div style="font-weight: bold; color: #b45cff;">MP: <div style="display:inline-block; width: 80%; background:#111; border:1px solid #b45cff; height:12px; border-radius: 2px;"><div style="width:100%; background:#b45cff; height:100%; box-shadow: 0 0 8px #b45cff;"></div></div></div>
+                    </div>
+                    <p style="margin: 15px 0 0 0; font-size: 0.75em; text-align: center; color: #777;">NODE: KADAYANALLUR [ONLINE]</p>
+                </div>
+            `;
+            document.body.appendChild(hud);
+            return "<span class='success-text'>[+] SYSTEM LINK ESTABLISHED. THE PLAYER HAS AWAKENED.</span>";
+        },
+        "system_unlink": () => {
+            const hud = document.getElementById('solo-hud');
+            if(hud) { 
+                hud.remove(); 
+                return "<span class='accent-text'>[-] STATUS WINDOW CLOSED.</span>"; 
             }
+            return "<span class='accent-text'>ERR: SYSTEM NOT ACTIVE.</span>";
         }
     },
 
@@ -384,7 +410,6 @@ const AETHER = {
 
 // --- MOBILE-OPTIMIZED INPUT LISTENER ---
 input.addEventListener('keyup', (e) => {
-    // 13 is the universal keyCode for the Enter/Return button on mobile devices
     if (e.key === 'Enter' || e.keyCode === 13) {
         e.preventDefault(); 
         AETHER.execute(input.value);
@@ -407,7 +432,6 @@ input.addEventListener('keyup', (e) => {
     }
 });
 
-// Fallback listener for soft-keyboards that trigger a 'search' event instead of 'Enter'
 input.addEventListener('search', () => {
     if (input.value.trim() !== "") {
         AETHER.execute(input.value);
@@ -415,7 +439,6 @@ input.addEventListener('search', () => {
     }
 });
 
-// Auto-focus input when clicking terminal
 document.addEventListener('click', () => input.focus());
 
 // --- BOOT SEQUENCE ---

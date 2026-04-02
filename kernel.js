@@ -196,133 +196,57 @@ const AETHER = {
 
         // --- 12. SYSTEM MELTDOWN (THE "FUNNY" PROTOCOL) ---
         "funny": () => {
-            // Force fullscreen if possible to trap the UI
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen denied"));
             }
-            
-            // Audio Assault: Dual-tone high frequency blare (Ear-piercing)
             try {
                 const actx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc1 = actx.createOscillator();
                 const osc2 = actx.createOscillator();
                 const gain = actx.createGain();
-                
-                osc1.type = 'square';
-                osc2.type = 'square';
-                
-                // Classic alternating alarm frequencies
+                osc1.type = 'square'; osc2.type = 'square';
                 setInterval(() => {
                     osc1.frequency.setValueAtTime(800, actx.currentTime);
                     osc1.frequency.setValueAtTime(1200, actx.currentTime + 0.2);
                 }, 400);
-
-                osc1.connect(gain);
-                osc2.connect(gain);
-                gain.connect(actx.destination);
-                
-                // Max volume the browser allows
+                osc1.connect(gain); osc2.connect(gain); gain.connect(actx.destination);
                 gain.gain.value = 1; 
-                
-                osc1.start();
-                osc2.start();
-                
-                // Kill the sound after 5 seconds to prevent actual hearing damage
+                osc1.start(); osc2.start();
                 setTimeout(() => { osc1.stop(); osc2.stop(); }, 5000);
             } catch(e) {}
 
-            // The Visual Hack
             const style = document.createElement('style');
             style.innerHTML = `
-                @keyframes violent-shake {
-                    0% { transform: translate(2px, 1px) rotate(0deg); }
-                    10% { transform: translate(-1px, -2px) rotate(-1deg); }
-                    20% { transform: translate(-3px, 0px) rotate(1deg); }
-                    30% { transform: translate(0px, 2px) rotate(0deg); }
-                    40% { transform: translate(1px, -1px) rotate(1deg); }
-                    50% { transform: translate(-1px, 2px) rotate(-1deg); }
-                    60% { transform: translate(-3px, 1px) rotate(0deg); }
-                    70% { transform: translate(2px, 1px) rotate(-1deg); }
-                    80% { transform: translate(-1px, -1px) rotate(1deg); }
-                    90% { transform: translate(2px, 2px) rotate(0deg); }
-                    100% { transform: translate(1px, -2px) rotate(-1deg); }
-                }
-                @keyframes flash-red {
-                    0%, 100% { background-color: #000; }
-                    50% { background-color: #500000; }
-                }
-                .hack-screen {
-                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                    background-color: #000; z-index: 10000; overflow: hidden;
-                    animation: flash-red 0.5s infinite;
-                }
-                .hack-wrapper {
-                    padding: 20px; animation: violent-shake 0.3s infinite;
-                }
-                .hack-header {
-                    color: #ff0000; font-family: monospace; font-size: 3rem; font-weight: bold;
-                    text-align: center; text-shadow: 0 0 20px #ff0000; border: 5px solid #ff0000;
-                    padding: 20px; margin-top: 10vh; background: rgba(255,0,0,0.1);
-                }
-                .hack-console {
-                    color: #ff3333; font-family: monospace; font-size: 1.2rem;
-                    margin-top: 30px; line-height: 1.5; white-space: pre-wrap;
-                }
+                @keyframes violent-shake { 0% { transform: translate(2px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(0px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(2px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(2px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+                @keyframes flash-red { 0%, 100% { background-color: #000; } 50% { background-color: #500000; } }
+                .hack-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 10000; overflow: hidden; animation: flash-red 0.5s infinite; }
+                .hack-wrapper { padding: 20px; animation: violent-shake 0.3s infinite; }
+                .hack-header { color: #ff0000; font-family: monospace; font-size: 3rem; font-weight: bold; text-align: center; text-shadow: 0 0 20px #ff0000; border: 5px solid #ff0000; padding: 20px; margin-top: 10vh; background: rgba(255,0,0,0.1); }
+                .hack-console { color: #ff3333; font-family: monospace; font-size: 1.2rem; margin-top: 30px; line-height: 1.5; white-space: pre-wrap; }
             `;
             document.head.appendChild(style);
 
-            // Wipe the DOM and inject the payload
             document.body.innerHTML = "";
-            
-            const hackScreen = document.createElement('div');
-            hackScreen.className = 'hack-screen';
-            
-            const hackWrapper = document.createElement('div');
-            hackWrapper.className = 'hack-wrapper';
-            
-            const header = document.createElement('div');
-            header.className = 'hack-header';
+            const hackScreen = document.createElement('div'); hackScreen.className = 'hack-screen';
+            const hackWrapper = document.createElement('div'); hackWrapper.className = 'hack-wrapper';
+            const header = document.createElement('div'); header.className = 'hack-header';
             header.innerHTML = "CRITICAL SYSTEM COMPROMISE<br>UNAUTHORIZED ROOT ACCESS DETECTED";
+            const consoleDiv = document.createElement('div'); consoleDiv.className = 'hack-console'; consoleDiv.id = 'fake-console';
             
-            const consoleDiv = document.createElement('div');
-            consoleDiv.className = 'hack-console';
-            consoleDiv.id = 'fake-console';
-            
-            hackWrapper.appendChild(header);
-            hackWrapper.appendChild(consoleDiv);
-            hackScreen.appendChild(hackWrapper);
-            document.body.appendChild(hackScreen);
+            hackWrapper.appendChild(header); hackWrapper.appendChild(consoleDiv); hackScreen.appendChild(hackWrapper); document.body.appendChild(hackScreen);
 
-            // Simulate rapidly scrolling stolen data
-            const lines = [
-                "Extracting local RSA Keys...",
-                "Bypassing Firewall Node 7...",
-                "Downloading /etc/shadow...",
-                "Dumping browser cache...",
-                "Purging system logs...",
-                "Encrypting file system - AES256...",
-                "WARNING: KERNEL PANIC DETECTED...",
-                "OVERRIDING HARDWARE CONTROLS...",
-                "Uplink established to external node."
-            ];
-
+            const lines = ["Extracting local RSA Keys...", "Bypassing Firewall Node 7...", "Downloading /etc/shadow...", "Dumping browser cache...", "Purging system logs...", "Encrypting file system - AES256...", "WARNING: KERNEL PANIC DETECTED...", "OVERRIDING HARDWARE CONTROLS...", "Uplink established to external node."];
             let lineIndex = 0;
             const scrollInterval = setInterval(() => {
                 const p = document.createElement('div');
-                // Randomly add hex strings to look technical
                 const hex = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
                 p.innerText = `[${hex}] > ${lines[lineIndex % lines.length]}`;
                 consoleDiv.appendChild(p);
                 lineIndex++;
-                if (lineIndex > 100) clearInterval(scrollInterval); // stop after 100 lines
+                if (lineIndex > 100) clearInterval(scrollInterval);
             }, 50);
 
-            // Haptic assault
-            if ("vibrate" in navigator) {
-                // Vibrate violently in a chaotic pattern
-                navigator.vibrate([100, 50, 100, 50, 200, 50, 300, 100, 500, 50, 100, 50]);
-            }
-
+            if ("vibrate" in navigator) { navigator.vibrate([100, 50, 100, 50, 200, 50, 300, 100, 500, 50, 100, 50]); }
             return "";
         },
 
@@ -367,10 +291,7 @@ const AETHER = {
         },
         "system_unlink": () => {
             const hud = document.getElementById('solo-hud');
-            if(hud) { 
-                hud.remove(); 
-                return "<span class='accent-text'>[-] STATUS WINDOW CLOSED.</span>"; 
-            }
+            if(hud) { hud.remove(); return "<span class='accent-text'>[-] STATUS WINDOW CLOSED.</span>"; }
             return "<span class='accent-text'>ERR: SYSTEM NOT ACTIVE.</span>";
         },
         
@@ -385,14 +306,14 @@ const AETHER = {
             container.style.margin = "10px 0";
             output.appendChild(container);
 
-            for (let i = 60; i < 75; i++) { // Optimized range for mobile hotspot scan
+            for (let i = 60; i < 75; i++) {
                 const ip = `${subnet}.${i}`;
                 const img = new Image();
                 img.onload = () => {
                     container.innerHTML += `<div class='success-text'>[+] NODE_ALIVE: ${ip} (Active)</div>`;
                     found++;
                 };
-                img.onerror = () => { /* Silent check */ };
+                img.onerror = () => { };
                 img.src = `http://${ip}/favicon.ico?${Date.now()}`;
             }
             setTimeout(() => { if(found === 0) container.innerHTML += "<span class='accent-text'>[!] NO UNPROTECTED NODES DISCOVERED.</span>"; }, 3000);
@@ -401,7 +322,6 @@ const AETHER = {
         "flight_tap": async () => {
             AETHER.printLine("[>] INTERCEPTING ADS-B DATA FROM NEAREST TELEMETRY NODE...");
             try {
-                // Mocking regional bounding box for simulation
                 const res = await fetch("https://opensky-network.org/api/states/all");
                 const data = await res.json();
                 const slice = data.states.slice(0, 5);
@@ -412,17 +332,23 @@ const AETHER = {
                 return out;
             } catch(e) { return "<span class='accent-text'>[!] API_THROTTLED: Global aviation nodes are heavily guarded.</span>"; }
         },
+        
+        // --- 16. DETACHED DOM BYPASS (SAT_VIEW FIX) ---
         "sat_view": (coords) => {
             const loc = coords || "Kadayanallur,India";
-            const iframe = document.createElement('iframe');
-            // FIX: Using the proper open-embed endpoint to bypass X-Frame-Options blocking
-            iframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(loc)}&t=k&z=15&ie=UTF8&iwloc=&output=embed`;
-            iframe.style.width = "100%";
-            iframe.style.height = "300px";
-            iframe.style.border = "2px solid #7b00ff";
-            iframe.style.marginTop = "10px";
-            output.appendChild(iframe);
-            return `<span class='success-text'>[+] OPTICAL SATELLITE UPLINK ESTABLISHED FOR: ${loc}</span>`;
+            AETHER.printLine("[>] INITIATING X-FRAME-OPTIONS FIREWALL BYPASS...");
+            
+            // Constructs the raw Google Maps Optics URL
+            const targetUrl = `https://www.google.com/maps/search/${encodeURIComponent(loc)}/data=!3m1!1e3`;
+            
+            // Punches through the Vercel sandbox by spawning a completely detached browser window
+            const newWindow = window.open(targetUrl, '_blank');
+            
+            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                return `<span class='accent-text'>[!] BYPASS FAILED: POPUP_BLOCKER DETECTED. Allow popups for AETHER-0 to establish the satellite uplink.</span>`;
+            }
+            
+            return `<span class='success-text'>[+] X-FRAME-OPTIONS EVADED.</span><br>Spawning detached optical window for: <span style='color:#00e5ff;'>${loc}</span>`;
         }
     },
 

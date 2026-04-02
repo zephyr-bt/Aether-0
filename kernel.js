@@ -1,6 +1,6 @@
 /**
- * AETHER-0 // GOD_MODE_KERNEL
- * ARCHITECT: FAHAD MALIK (SUPER_STAR)
+ * AETHER-0 // GOD_MODE_KERNEL // V4.0 ENTERPRISE
+ * ARCHITECT: FAHAD MALIK (SUPER_STAR / SPYDEY)
  * ORG: WEBLOOM INC. 
  * ORIGIN: TOKYO_JPN // LOCAL_NODE: KADAYANALLUR_IND
  */
@@ -10,30 +10,55 @@ const input = document.getElementById('cmd-input');
 const clock = document.getElementById('clock');
 const wrapper = document.getElementById('terminal-wrapper');
 
+// --- ENTERPRISE UI INJECTION (VERCEL/LINEAR AESTHETIC) ---
+const injectEnterpriseUI = () => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
+        body { background-color: #0A0A0A; color: #A1A1AA; font-family: 'JetBrains Mono', monospace; margin: 0; overflow: hidden; letter-spacing: -0.5px; }
+        #terminal-wrapper { width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 24px; box-sizing: border-box; background: radial-gradient(circle at 50% 0%, #171717 0%, #0A0A0A 100%); }
+        #output { flex-grow: 1; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; font-size: 13px; line-height: 1.7; }
+        #output::-webkit-scrollbar { display: none; }
+        .line { margin-bottom: 8px; word-wrap: break-word; animation: fade-in 0.2s ease-out; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .prompt-text { color: #3B82F6; font-weight: 600; }
+        .success-text { color: #10B981; }
+        .accent-text { color: #EF4444; }
+        .sys-text { color: #8B5CF6; }
+        .muted { color: #52525B; }
+        .data-key { color: #F59E0B; }
+        #input-line { display: flex; align-items: center; padding-top: 16px; border-top: 1px solid #27272A; }
+        #cmd-input { background: transparent; border: none; color: #E4E4E7; font-family: inherit; font-size: 13px; flex-grow: 1; outline: none; margin-left: 12px; font-weight: 600; caret-color: #3B82F6; }
+        #clock { position: absolute; top: 24px; right: 24px; color: #52525B; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+    `;
+    document.head.appendChild(style);
+};
+injectEnterpriseUI();
+
 // --- LIVE CLOCK ---
-setInterval(() => { clock.innerText = new Date().toLocaleTimeString("en-IN", {timeZone: "Asia/Kolkata"}); }, 1000);
+setInterval(() => { clock.innerText = new Date().toLocaleTimeString("en-IN", {timeZone: "Asia/Kolkata", hour12: false}) + " IST"; }, 1000);
 
 // --- PYTHON WEBASSEMBLY (PYODIDE) BOOT SEQUENCE ---
 let pyodideReady = false;
 let pyodide = null;
 
 async function bootPythonCore() {
-    AETHER.printLine("[>] INITIALIZING WASM PYTHON KERNEL...");
+    AETHER.printLine("<span class='muted'>[SYSTEM]</span> INITIALIZING WASM CPYTHON ENGINE...");
     try {
         if (typeof loadPyodide !== "undefined") {
             pyodide = await loadPyodide();
             pyodideReady = true;
-            AETHER.printLine("<span class='success-text'>[+] CPYTHON ENVIRONMENT SECURED. 'py' PROTOCOL ACTIVE.</span>");
+            AETHER.printLine("<span class='success-text'>[OK]</span> CPYTHON ENVIRONMENT ALLOCATED.");
         } else {
-            AETHER.printLine("<span class='accent-text'>[!] PYODIDE_MISSING: Add Pyodide CDN script to HTML head.</span>");
+            AETHER.printLine("<span class='accent-text'>[WARN]</span> PYODIDE CDN MISSING. PYTHON PROTOCOLS OFFLINE.");
         }
     } catch (err) {
-        AETHER.printLine(`<span class='accent-text'>[!] WASM_ERR: ${err.message}</span>`);
+        AETHER.printLine(`<span class='accent-text'>[ERROR]</span> WASM_ERR: ${err.message}`);
     }
 }
-setTimeout(bootPythonCore, 1000);
+setTimeout(bootPythonCore, 500);
 
-// --- GLOBAL BLUETOOTH MEMORY ---
+// --- GLOBAL MEMORY ---
 window.bleDevice = null;
 window.bleServer = null;
 
@@ -42,314 +67,141 @@ const AETHER = {
     historyIndex: -1,
 
     registry: {
-        // --- 1. REAL EXEC & PYTHON ENGINES ---
+        // --- 1. CORE ENGINES ---
         "exec": async (code) => {
-            if (!code) return "<span class='accent-text'>ERR: CODE_REQUIRED</span>";
+            if (!code) return "<span class='accent-text'>Usage: exec [javascript]</span>";
             try { 
                 const result = await eval(`(async () => { return ${code} })()`); 
-                return typeof result === 'object' ? `<span class='success-text'>${JSON.stringify(result)}</span>` : `<span class='success-text'>${String(result)}</span>`;
-            } catch (e) { return `<span class='accent-text'>[!] EXEC_ERR: ${e.message}</span>`; }
+                return typeof result === 'object' ? `<span class='success-text'>${JSON.stringify(result, null, 2)}</span>` : `<span class='success-text'>${String(result)}</span>`;
+            } catch (e) { return `<span class='accent-text'>[ERROR]</span> ${e.message}`; }
         },
         "py": async (code) => {
-            if (!code) return "<span class='accent-text'>ERR: PYTHON_CODE_REQUIRED</span>";
-            if (!pyodideReady) return "<span class='accent-text'>ERR: PYTHON_KERNEL_STILL_BOOTING</span>";
+            if (!code) return "<span class='accent-text'>Usage: py [python_code]</span>";
+            if (!pyodideReady) return "<span class='accent-text'>[ERROR]</span> CPYTHON KERNEL OFFLINE.";
             try {
                 const pyResult = await pyodide.runPythonAsync(code);
-                return typeof pyResult !== 'undefined' ? `<span style="color:#f2e422;">PYTHON_OUT: ${pyResult}</span>` : "<span class='success-text'>[+] EXECUTED.</span>";
-            } catch (err) { return `<span class='accent-text'>[!] PYTHON_TRACEBACK: ${err.message}</span>`; }
+                return typeof pyResult !== 'undefined' ? `<span style="color:#FCD34D;">${pyResult}</span>` : "<span class='success-text'>[OK]</span> SCRIPT EXECUTED.";
+            } catch (err) { return `<span class='accent-text'>[TRACEBACK]</span> ${err.message}`; }
         },
 
-        // --- 2. SONY BRAVIA & ROKU LAN CONTROLLERS ---
-        "sony_power": async (args) => {
-            const parts = args.split(" ");
-            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_power [local_ip] [psk_key]</span>";
-            const ip = parts[0];
-            const psk = parts[1];
-
-            const payload = `<?xml version="1.0"?>
-            <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-                <s:Body>
-                    <u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1">
-                        <IRCCCode>AAAAAQAAAAEAAAAVAw==</IRCCCode>
-                    </u:X_SendIRCC>
-                </s:Body>
-            </s:Envelope>`;
-
+        // --- 2. ENTERPRISE DEV TOOLS (NEW) ---
+        "dns": async (domain) => {
+            if(!domain) return "<span class='accent-text'>Usage: dns [domain.com]</span>";
+            AETHER.printLine(`<span class='muted'>[NETWORK]</span> QUERYING DNS ROUTING TABLES FOR ${domain}...`);
             try {
-                AETHER.printLine(`[>] TRANSMITTING IRCC XML PAYLOAD TO ${ip}...`);
-                await fetch(`http://${ip}/sony/IRCC`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Auth-PSK': psk,
-                        'Content-Type': 'text/xml; charset=utf-8',
-                        'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"'
-                    },
-                    body: payload
+                const res = await fetch(`https://dns.google/resolve?name=${domain}&type=ANY`);
+                const data = await res.json();
+                if(!data.Answer) return `<span class='accent-text'>[WARN]</span> NO DNS RECORDS FOUND FOR: ${domain}`;
+                let out = `<span class='sys-text'>[ROUTING TABLE: ${domain}]</span><br>`;
+                data.Answer.forEach(r => {
+                    const typeMap = {1: 'A', 5: 'CNAME', 15: 'MX', 16: 'TXT', 28: 'AAAA'};
+                    const typeStr = typeMap[r.type] || `TYPE_${r.type}`;
+                    out += `<span class='muted'>[${typeStr.padEnd(5, ' ')}]</span> <span class='data-key'>${r.data}</span> (TTL: ${r.TTL})<br>`;
                 });
-                return `<span class='success-text'>[+] BRAVIA OVERRIDDEN. POWER TOGGLED.</span>`;
-            } catch(e) { return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}<br>(Check CORS extensions if running in browser sandbox).</span>`; }
+                return out;
+            } catch(e) { return "<span class='accent-text'>[ERROR]</span> DNS LOOKUP FAILED."; }
         },
-        "sony_mute": async (args) => {
-            const parts = args.split(" ");
-            if (parts.length < 2) return "<span class='accent-text'>Usage: sony_mute [local_ip] [psk_key]</span>";
-            const payload = `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1"><IRCCCode>AAAAAQAAAAEAAAAUAw==</IRCCCode></u:X_SendIRCC></s:Body></s:Envelope>`;
+        "hash": async (text) => {
+            if(!text) return "<span class='accent-text'>Usage: hash [string]</span>";
+            const msgUint8 = new TextEncoder().encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return `<span class='sys-text'>[SHA-256]</span> ${hashHex}`;
+        },
+        "uuid": () => {
+            const id = crypto.randomUUID ? crypto.randomUUID() : 'UUID_API_NOT_SUPPORTED';
+            return `<span class='sys-text'>[UUID-V4]</span> ${id}`;
+        },
+        "ping_web": async (url) => {
+            if(!url) return "<span class='accent-text'>Usage: ping_web [https://domain.com]</span>";
+            const target = url.startsWith('http') ? url : `https://${url}`;
+            AETHER.printLine(`<span class='muted'>[NETWORK]</span> INITIATING TCP HANDSHAKE WITH ${target}...`);
+            const start = performance.now();
             try {
-                await fetch(`http://${parts[0]}/sony/IRCC`, {
-                    method: 'POST',
-                    headers: { 'X-Auth-PSK': parts[1], 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': '"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"' },
-                    body: payload
-                });
-                return `<span class='success-text'>[+] BRAVIA AUDIO MUTED.</span>`;
-            } catch(e) { return `<span class='accent-text'>[!] SONY_API_ERR: ${e.message}</span>`; }
-        },
-        "tv_power": async (ip) => {
-            if (!ip) return "<span class='accent-text'>Usage: tv_power [local_ip] (e.g., Roku port 8060)</span>";
-            try {
-                await fetch(`http://${ip}:8060/keypress/Power`, { method: 'POST', mode: 'no-cors' });
-                return `<span class='success-text'>[+] POWER_PAYLOAD DELIVERED TO LAN IP: ${ip}</span>`;
-            } catch(e) { return `<span class='accent-text'>[!] LAN_ERR: ${e.message}</span>`; }
-        },
-
-        // --- 3. BLUETOOTH (BLE) CONTROLLERS ---
-        "bt_scan": async () => {
-            try {
-                AETHER.printLine(`[>] SCANNING LOCAL FREQUENCIES FOR BLE SIGNATURES...`);
-                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-                window.bleDevice = device;
-                return `<span class='success-text'>[+] BLE TARGET LOCKED: ${device.name || 'UNKNOWN_DEVICE'}</span><br>ID: ${device.id}<br>Type 'bt_connect' to attempt GATT link.`;
-            } catch(e) { return `<span class='accent-text'>[!] BT_SCAN_FAILED: ${e.message}</span>`; }
-        },
-        "bt_connect": async () => {
-            if (!window.bleDevice) return "<span class='accent-text'>ERR: NO_TARGET_LOCKED. Run 'bt_scan' first.</span>";
-            try {
-                AETHER.printLine(`[>] NEGOTIATING GATT SERVER HANDSHAKE WITH ${window.bleDevice.name}...`);
-                const server = await window.bleDevice.gatt.connect();
-                window.bleServer = server;
-                return `<span class='success-text'>[+] GATT LINK ESTABLISHED. DEVICE VULNERABLE.</span>`;
-            } catch(e) { return `<span class='accent-text'>[!] GATT_LINK_FAILED: ${e.message}</span>`; }
-        },
-        "bt_disconnect": () => {
-            if (window.bleDevice && window.bleDevice.gatt.connected) {
-                window.bleDevice.gatt.disconnect();
-                return "[-] GATT LINK SEVERED.";
+                await fetch(target, { mode: 'no-cors', cache: 'no-store' });
+                const end = performance.now();
+                return `<span class='success-text'>[OK]</span> RESPONSE RECEIVED IN ${(end - start).toFixed(2)}ms`;
+            } catch(e) {
+                return `<span class='accent-text'>[ERROR]</span> CONNECTION REFUSED OR TIMED OUT.`;
             }
-            return "ERR: NO_ACTIVE_BT_CONNECTION.";
         },
 
-        // --- 4. DOM DESTRUCTION & UI MANIPULATION ---
-        "edit_web": () => { document.designMode = "on"; return "<span class='success-text'>[+] DOM UNLOCKED: Type anywhere on this webpage.</span>"; },
-        "lock_web": () => { document.designMode = "off"; return "<span class='accent-text'>[-] DOM LOCKED.</span>"; },
-        "barrel_roll": () => { wrapper.style.transition = "transform 2s"; wrapper.style.transform = "rotate(360deg)"; setTimeout(()=>wrapper.style.transform="", 2000); return "DOING A BARREL ROLL."; },
-        "earthquake": () => { let i=0; const iv = setInterval(()=>{ wrapper.style.transform = `translate(${Math.random()*20-10}px, ${Math.random()*20-10}px)`; i++; if(i>20){clearInterval(iv); wrapper.style.transform="";}}, 50); return "<span class='accent-text'>SEISMIC ANOMALY DETECTED.</span>"; },
-        "invert": () => { document.body.style.filter = document.body.style.filter === "invert(1)" ? "" : "invert(1)"; return "POLARITY_TOGGLED."; },
-        "disco": () => { window.discoIv = setInterval(()=> document.body.style.filter = `hue-rotate(${Math.random()*360}deg)`, 100); return "RAVE PROTOCOL ACTIVE. Use 'stop_disco'."; },
-        "stop_disco": () => { clearInterval(window.discoIv); document.body.style.filter = ""; return "RAVE_HALTED."; },
-        "hide_cursor": () => { document.body.style.cursor = "none"; return "STEALTH_CURSOR_ACTIVE."; },
-        "show_cursor": () => { document.body.style.cursor = "default"; return "CURSOR_RESTORED."; },
-
-        // --- 5. HARDWARE & OS INTERROGATION ---
-        "battery": async () => { try { const b = await navigator.getBattery(); return `BATTERY: ${b.level*100}% | CHARGING: ${b.charging}`; } catch(e) { return "<span class='accent-text'>HARDWARE_LOCKED</span>"; } },
-        "vibrate": () => { navigator.vibrate([200, 100, 200, 100, 500]); return "HAPTIC_MOTORS_ENGAGED."; },
-        "voice": (msg) => { const u = new SpeechSynthesisUtterance(msg || "Super star override protocol accepted."); window.speechSynthesis.speak(u); return "TTS_ONLINE."; },
-        "cores": () => `CPU_LOGICAL_CORES: ${navigator.hardwareConcurrency || 'UNKNOWN'}`,
-        "memory": () => `RAM_HEAP_LIMIT: ${performance.memory ? performance.memory.jsHeapSizeLimit / 1048576 + ' MB' : 'DENIED'}`,
-        "platform": () => `OS_USER_AGENT: ${navigator.userAgent}`,
-
-        // --- 6. LIVE DATA HEISTS ---
-        "iss_loc": async () => { const r = await fetch("http://api.open-notify.org/iss-now.json"); const d = await r.json(); return `🛰️ ISS_COORDS: LAT ${d.iss_position.latitude}, LON ${d.iss_position.longitude}`; },
-        "crypto_btc": async () => { const r = await fetch("https://api.coindesk.com/v1/bpi/currentprice.json"); const d = await r.json(); return `🪙 BTC_LIVE: $${d.bpi.USD.rate}`; },
-        "arise": () => { 
-            document.body.style.background = "#050014"; 
-            wrapper.style.borderColor = "#7b00ff";
-            wrapper.style.boxShadow = "0 20px 50px rgba(0,0,0,0.9), inset 0 0 25px rgba(123, 0, 255, 0.3)";
-            document.documentElement.style.setProperty('--cyan', '#b45cff');
-            return "<span style='color:#b45cff; font-weight:bold; text-shadow: 0 0 8px #b45cff'>SHADOW_ARMY_AWAKENED. ARISE.</span>"; 
+        // --- 3. HARDWARE & OS INTERROGATION ---
+        "sys_diag": async () => {
+            let out = `<span class='sys-text'>[SYSTEM DIAGNOSTICS]</span><br>`;
+            out += `<span class='muted'>PLATFORM :</span> <span class='data-key'>${navigator.platform}</span><br>`;
+            out += `<span class='muted'>AGENT    :</span> <span class='data-key'>${navigator.userAgent}</span><br>`;
+            out += `<span class='muted'>CORES    :</span> <span class='data-key'>${navigator.hardwareConcurrency || 'UNKNOWN'}</span><br>`;
+            out += `<span class='muted'>MEMORY   :</span> <span class='data-key'>${navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'RESTRICTED'}</span><br>`;
+            try { 
+                const b = await navigator.getBattery(); 
+                out += `<span class='muted'>POWER    :</span> <span class='data-key'>${(b.level*100).toFixed(0)}% (${b.charging ? 'AC_ATTACHED' : 'DISCHARGING'})</span>`; 
+            } catch(e) { out += `<span class='muted'>POWER    :</span> <span class='accent-text'>ACCESS_DENIED</span>`; }
+            return out;
         },
-        "pokemon": async (name) => { try { const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${name||'rayquaza'}`); const d = await r.json(); return `🐉 EVO_DATA: ${d.name.toUpperCase()} | TYPE: ${d.types[0].type.name} | HP: ${d.stats[0].base_stat}`; } catch(e){ return "<span class='accent-text'>ENTITY_NOT_FOUND</span>"; } },
 
-        // --- 7. NETWORK & TRACKING ---
+        // --- 4. NETWORK & TRACKING ---
         "locate_ip": async (ip) => {
-            if (!ip) return "<span class='accent-text'>ERR: TARGET_IP_REQUIRED</span>";
+            if (!ip) return "<span class='accent-text'>Usage: locate_ip [target_ip]</span>";
             try {
                 const res = await fetch(`https://ipapi.co/${ip}/json/`);
                 const data = await res.json();
-                if (data.error) return `<span class='accent-text'>[!] TRACE_FAILED: ${data.reason}</span>`;
-                return `<span class='success-text'>[+] TARGET ACQUIRED</span><br>IP: ${data.ip}<br>CITY: ${data.city}<br>ORG: ${data.org}`;
-            } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
-        },
-        "notify": async (args) => {
-            const parts = args.split(" ");
-            if (parts.length < 2) return "<span class='accent-text'>Usage: notify [topic] [message]</span>";
-            const topic = parts[0]; 
-            const msg = parts.slice(1).join(" ");
-            try {
-                const res = await fetch(`https://ntfy.sh/${topic}`, { method: 'POST', body: msg, headers: { 'Title': 'AETHER-0', 'Priority': 'default' } });
-                if (res.ok) return `<span class='success-text'>[+] PUSH_DELIVERED TO /${topic}</span>`;
-                return `<span class='accent-text'>[!] PUSH_FAILED.</span>`;
-            } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR</span>`; }
+                if (data.error) return `<span class='accent-text'>[ERROR]</span> TRACE_FAILED: ${data.reason}`;
+                return `<span class='success-text'>[OK]</span> TARGET ACQUIRED<br><span class='muted'>IP:</span> ${data.ip}<br><span class='muted'>ISP:</span> ${data.org}<br><span class='muted'>LOC:</span> ${data.city}, ${data.country_name}`;
+            } catch (err) { return `<span class='accent-text'>[ERROR]</span> NETWORK TRACE FAILED`; }
         },
 
-        // --- 8. SYSTEM CORE ---
-        "whoami": () => "ID: FAHAD_MALIK | ALIAS: SUPER_STAR<br>ORIGIN: TOKYO_JPN | LOCAL_NODE: KADAYANALLUR_IND<br>ORG: WEBLOOM INC.",
-        "clear": () => { output.innerHTML = ""; return ""; },
-        "help": () => "AVAILABLE_PROTOCOLS:<br><br>" + Object.keys(AETHER.registry).join(", "),
-
-        // --- 12. SYSTEM MELTDOWN (THE "FUNNY" PROTOCOL) ---
-        "funny": () => {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen denied"));
-            }
-            try {
-                const actx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc1 = actx.createOscillator();
-                const osc2 = actx.createOscillator();
-                const gain = actx.createGain();
-                osc1.type = 'square'; osc2.type = 'square';
-                setInterval(() => {
-                    osc1.frequency.setValueAtTime(800, actx.currentTime);
-                    osc1.frequency.setValueAtTime(1200, actx.currentTime + 0.2);
-                }, 400);
-                osc1.connect(gain); osc2.connect(gain); gain.connect(actx.destination);
-                gain.gain.value = 1; 
-                osc1.start(); osc2.start();
-                setTimeout(() => { osc1.stop(); osc2.stop(); }, 5000);
-            } catch(e) {}
-
-            const style = document.createElement('style');
-            style.innerHTML = `
-                @keyframes violent-shake { 0% { transform: translate(2px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(0px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(2px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(2px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
-                @keyframes flash-red { 0%, 100% { background-color: #000; } 50% { background-color: #500000; } }
-                .hack-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 10000; overflow: hidden; animation: flash-red 0.5s infinite; }
-                .hack-wrapper { padding: 20px; animation: violent-shake 0.3s infinite; }
-                .hack-header { color: #ff0000; font-family: monospace; font-size: 3rem; font-weight: bold; text-align: center; text-shadow: 0 0 20px #ff0000; border: 5px solid #ff0000; padding: 20px; margin-top: 10vh; background: rgba(255,0,0,0.1); }
-                .hack-console { color: #ff3333; font-family: monospace; font-size: 1.2rem; margin-top: 30px; line-height: 1.5; white-space: pre-wrap; }
-            `;
-            document.head.appendChild(style);
-
-            document.body.innerHTML = "";
-            const hackScreen = document.createElement('div'); hackScreen.className = 'hack-screen';
-            const hackWrapper = document.createElement('div'); hackWrapper.className = 'hack-wrapper';
-            const header = document.createElement('div'); header.className = 'hack-header';
-            header.innerHTML = "CRITICAL SYSTEM COMPROMISE<br>UNAUTHORIZED ROOT ACCESS DETECTED";
-            const consoleDiv = document.createElement('div'); consoleDiv.className = 'hack-console'; consoleDiv.id = 'fake-console';
-            
-            hackWrapper.appendChild(header); hackWrapper.appendChild(consoleDiv); hackScreen.appendChild(hackWrapper); document.body.appendChild(hackScreen);
-
-            const lines = ["Extracting local RSA Keys...", "Bypassing Firewall Node 7...", "Downloading /etc/shadow...", "Dumping browser cache...", "Purging system logs...", "Encrypting file system - AES256...", "WARNING: KERNEL PANIC DETECTED...", "OVERRIDING HARDWARE CONTROLS...", "Uplink established to external node."];
-            let lineIndex = 0;
-            const scrollInterval = setInterval(() => {
-                const p = document.createElement('div');
-                const hex = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
-                p.innerText = `[${hex}] > ${lines[lineIndex % lines.length]}`;
-                consoleDiv.appendChild(p);
-                lineIndex++;
-                if (lineIndex > 100) clearInterval(scrollInterval);
-            }, 50);
-
-            if ("vibrate" in navigator) { navigator.vibrate([100, 50, 100, 50, 200, 50, 300, 100, 500, 50, 100, 50]); }
-            return "";
-        },
-
-        // --- 13. OSINT: TELECOM TRACER ---
-        "trace_no": async (phone) => {
-            if (!phone) return "<span class='accent-text'>Usage: trace_no [+CountryCode][Number] (e.g., trace_no +919876543210)</span>";
-            const cleanPhone = phone.startsWith('+') ? phone : '+' + phone;
-            AETHER.printLine(`[>] INTERROGATING TELECOM ROUTING TABLES FOR ${cleanPhone}...`);
-            try {
-                await new Promise(resolve => setTimeout(resolve, 1500)); 
-                let country = "UNKNOWN"; let carrier = "ENCRYPTED NODE";
-                if(cleanPhone.startsWith("+91")) { country = "INDIA (IN)"; carrier = "Jio / Airtel / Vi"; }
-                else if(cleanPhone.startsWith("+1")) { country = "USA / CANADA"; carrier = "AT&T / Verizon"; }
-                else if(cleanPhone.startsWith("+81")) { country = "JAPAN (JP)"; carrier = "NTT Docomo / SoftBank"; }
-                else if(cleanPhone.startsWith("+44")) { country = "UNITED KINGDOM"; carrier = "Vodafone / EE"; }
-                else { country = "INTERNATIONAL ZONE"; }
-                return `<span class='success-text'>[+] OSINT EXTRACTION COMPLETE.</span><br>TARGET: <span style='color:#00e5ff;'>${cleanPhone}</span><br>REGION: ${country}<br>NETWORK TIER: Mobile / Cellular<br>CARRIER: ${carrier}<br><br><span style='color:gray; font-size: 0.8em;'>* SS7 Firewall Active. Exact GPS coordinates and Identity masked by telecom provider.</span>`;
-            } catch (err) { return `<span class='accent-text'>[!] NETWORK_ERR: CONNECTION REFUSED BY TELECOM NODE.</span>`; }
-        },
-
-        // --- 14. SOLO LEVELING SYSTEM HUD ---
-        "system_link": () => {
-            if(document.getElementById('solo-hud')) return "<span class='accent-text'>SYSTEM ALREADY ACTIVE.</span>";
-            const hud = document.createElement('div');
-            hud.id = 'solo-hud';
-            hud.innerHTML = `
-                <div style="border: 2px solid #00e5ff; background: rgba(0, 10, 20, 0.85); box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); color: #00e5ff; font-family: 'Courier New', monospace; padding: 15px; width: 280px; position: fixed; top: 20px; right: 20px; z-index: 9999; border-radius: 8px; backdrop-filter: blur(5px);">
-                    <h3 style="margin: 0 0 10px 0; text-align: center; border-bottom: 1px solid #00e5ff; padding-bottom: 5px; text-shadow: 0 0 8px #00e5ff;">STATUS WINDOW</h3>
-                    <p style="margin: 5px 0;"><b>NAME:</b> FAHAD MALIK</p>
-                    <p style="margin: 5px 0;"><b>JOB:</b> SYSTEM ARCHITECT</p>
-                    <p style="margin: 5px 0;"><b>TITLE:</b> SUPER_STAR</p>
-                    <p style="margin: 5px 0;"><b>LEVEL:</b> 99</p>
-                    <div style="margin-top: 15px;">
-                        <div style="margin-bottom: 8px; font-weight: bold;">HP: <div style="display:inline-block; width: 80%; background:#111; border:1px solid #00e5ff; height:12px; border-radius: 2px;"><div style="width:100%; background:#00e5ff; height:100%; box-shadow: 0 0 8px #00e5ff;"></div></div></div>
-                        <div style="font-weight: bold; color: #b45cff;">MP: <div style="display:inline-block; width: 80%; background:#111; border:1px solid #b45cff; height:12px; border-radius: 2px;"><div style="width:100%; background:#b45cff; height:100%; box-shadow: 0 0 8px #b45cff;"></div></div></div>
-                    </div>
-                    <p style="margin: 15px 0 0 0; font-size: 0.75em; text-align: center; color: #777;">NODE: KADAYANALLUR [ONLINE]</p>
-                </div>
-            `;
-            document.body.appendChild(hud);
-            return "<span class='success-text'>[+] SYSTEM LINK ESTABLISHED. THE PLAYER HAS AWAKENED.</span>";
-        },
-        "system_unlink": () => {
-            const hud = document.getElementById('solo-hud');
-            if(hud) { hud.remove(); return "<span class='accent-text'>[-] STATUS WINDOW CLOSED.</span>"; }
-            return "<span class='accent-text'>ERR: SYSTEM NOT ACTIVE.</span>";
-        },
-        
-        // --- 15. OMNISCIENCE (NETWORK & OSINT) ---
+        // --- 5. OMNISCIENCE (NETWORK MAPPING) ---
         "net_map": async () => {
-            AETHER.printLine("[>] INITIATING SUBNET DISCOVERY [Range: 10.17.149.1 - 254]...");
+            AETHER.printLine("<span class='muted'>[NETWORK]</span> INITIATING SUBNET DISCOVERY [10.17.149.1 - 254]...");
             const subnet = "10.17.149";
             let found = 0;
             const container = document.createElement('div');
-            container.style.borderLeft = "2px solid #7b00ff";
-            container.style.paddingLeft = "10px";
-            container.style.margin = "10px 0";
+            container.style.borderLeft = "2px solid #3B82F6";
+            container.style.paddingLeft = "12px";
+            container.style.margin = "12px 0";
             output.appendChild(container);
 
             for (let i = 60; i < 75; i++) {
                 const ip = `${subnet}.${i}`;
                 const img = new Image();
                 img.onload = () => {
-                    container.innerHTML += `<div class='success-text'>[+] NODE_ALIVE: ${ip} (Active)</div>`;
+                    container.innerHTML += `<div class='success-text'>[ALIVE] ${ip}</div>`;
                     found++;
                 };
                 img.onerror = () => { };
                 img.src = `http://${ip}/favicon.ico?${Date.now()}`;
             }
-            setTimeout(() => { if(found === 0) container.innerHTML += "<span class='accent-text'>[!] NO UNPROTECTED NODES DISCOVERED.</span>"; }, 3000);
-            return "SCAN_BACKGROUNDED.";
+            setTimeout(() => { if(found === 0) container.innerHTML += "<span class='muted'>[INFO] NO UNPROTECTED NODES DISCOVERED.</span>"; }, 3000);
+            return "<span class='muted'>[SYSTEM]</span> SCAN BACKGROUNDED.";
         },
-        "flight_tap": async () => {
-            AETHER.printLine("[>] INTERCEPTING ADS-B DATA FROM NEAREST TELEMETRY NODE...");
-            try {
-                const res = await fetch("https://opensky-network.org/api/states/all");
-                const data = await res.json();
-                const slice = data.states.slice(0, 5);
-                let out = "<span class='success-text'>[+] LOCAL AIRSPACE DATA EXTRACTED:</span><br>";
-                slice.forEach(f => {
-                    out += `ID: ${f[0]} | CALLSIGN: ${f[1] || 'N/A'} | ALT: ${Math.round(f[7] || 0)}m | VEL: ${Math.round(f[9] || 0)}m/s<br>`;
-                });
-                return out;
-            } catch(e) { return "<span class='accent-text'>[!] API_THROTTLED: Global aviation nodes are heavily guarded.</span>"; }
-        },
-        
-        // --- 16. DETACHED DOM BYPASS (SAT_VIEW FIX) ---
         "sat_view": (coords) => {
             const loc = coords || "Kadayanallur,India";
-            AETHER.printLine("[>] INITIATING X-FRAME-OPTIONS FIREWALL BYPASS...");
-            
-            // Constructs the raw Google Maps Optics URL
+            AETHER.printLine("<span class='muted'>[UPLINK]</span> INITIATING SECURE DETACHED OPTICS...");
             const targetUrl = `https://www.google.com/maps/search/${encodeURIComponent(loc)}/data=!3m1!1e3`;
-            
-            // Punches through the Vercel sandbox by spawning a completely detached browser window
             const newWindow = window.open(targetUrl, '_blank');
-            
             if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-                return `<span class='accent-text'>[!] BYPASS FAILED: POPUP_BLOCKER DETECTED. Allow popups for AETHER-0 to establish the satellite uplink.</span>`;
+                return `<span class='accent-text'>[ERROR]</span> POPUP_BLOCKER DETECTED. OVERRIDE REQUIRED.`;
             }
-            
-            return `<span class='success-text'>[+] X-FRAME-OPTIONS EVADED.</span><br>Spawning detached optical window for: <span style='color:#00e5ff;'>${loc}</span>`;
-        }
+            return `<span class='success-text'>[OK]</span> SATELLITE OPTICS ENGAGED FOR: <span class='data-key'>${loc}</span>`;
+        },
+
+        // --- 6. SYSTEM CORE ---
+        "whoami": () => "<span class='sys-text'>[IDENTITY]</span> FAHAD MALIK<br><span class='muted'>[ALIAS]</span> SUPER_STAR / SPYDEY<br><span class='muted'>[ORG]</span> WEBLOOM INC. / VULCAN PROTOCOL<br><span class='muted'>[ORIGIN]</span> TOKYO_JPN <br><span class='muted'>[NODE]</span> KADAYANALLUR_IND",
+        "clear": () => { output.innerHTML = ""; return ""; },
+        "help": () => {
+            return `<span class='sys-text'>AETHER-0 // MAINFRAME PROTOCOLS:</span><br><br>` +
+                   `<span class='muted'>[SYSTEM]</span>  clear, whoami, sys_diag, exec, py<br>` +
+                   `<span class='muted'>[NETWORK]</span> locate_ip, net_map, ping_web, dns<br>` +
+                   `<span class='muted'>[DEV_OPS]</span> hash, uuid<br>` +
+                   `<span class='muted'>[INTEL]</span>   sat_view<br><br>` +
+                   `<span class='muted'>* Legacy toy protocols have been archived.</span>`;
+        },
+
+        // --- 7. LEGACY ARCHIVE (HIDDEN FROM HELP) ---
+        "funny": () => { return "<span class='accent-text'>[RESTRICTED]</span> PROTOCOL ARCHIVED BY ORG POLICY."; },
+        "domain_expansion": () => { return "<span class='accent-text'>[RESTRICTED]</span> PROTOCOL ARCHIVED BY ORG POLICY."; }
     },
 
     async execute(rawInput) {
@@ -362,17 +214,17 @@ const AETHER = {
         const cmd = parts[0].toLowerCase();
         const args = parts.slice(1).join(" ");
 
-        this.printLine(`<span class="prompt-text">ROOT@AETHER0:~$</span> ${rawInput}`);
+        this.printLine(`<span class="prompt-text">SUPER_STAR@AETHER-0:~$</span> <span style="color:#E4E4E7">${rawInput}</span>`);
 
         if (this.registry[cmd]) {
             try {
                 const result = await this.registry[cmd](args);
                 if (result) this.printLine(result);
             } catch (err) {
-                this.printLine(`<span class='accent-text'>[!] KERNEL_PANIC: ${err.message}</span>`);
+                this.printLine(`<span class='accent-text'>[FATAL ERROR]</span> ${err.message}`);
             }
         } else {
-            this.printLine(`<span class='accent-text'>[!] UNKNOWN_PROTOCOL: '${cmd}'</span>`);
+            this.printLine(`<span class='accent-text'>[ERROR]</span> COMMAND NOT RECOGNIZED: '${cmd}'`);
         }
     },
 
@@ -385,7 +237,7 @@ const AETHER = {
     }
 };
 
-// --- MOBILE-OPTIMIZED INPUT LISTENER ---
+// --- INPUT HANDLERS ---
 input.addEventListener('keyup', (e) => {
     if (e.key === 'Enter' || e.keyCode === 13) {
         e.preventDefault(); 
@@ -420,7 +272,7 @@ document.addEventListener('click', () => input.focus());
 
 // --- BOOT SEQUENCE ---
 window.onload = () => {
-    AETHER.printLine("AETHER-0 GOD MODE ENGINE [Fox Protocol Active]");
-    AETHER.printLine("BLUETOOTH, LAN & DOM INJECTION PROTOCOLS ONLINE.");
-    AETHER.printLine("MOBILE INPUT OVERRIDE ACTIVE. TYPE 'help' TO INITIATE.");
+    AETHER.printLine("<span class='sys-text'>AETHER-0 // WEBLOOM ENTERPRISE MAINFRAME [v4.0]</span>");
+    AETHER.printLine("<span class='muted'>SECURE CONNECTION ESTABLISHED. ALL PROTOCOLS ONLINE.</span>");
+    AETHER.printLine("<span class='muted'>TYPE 'help' TO VIEW AVAILABLE DIRECTIVES.</span>");
 };

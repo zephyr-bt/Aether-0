@@ -415,7 +415,8 @@ const AETHER = {
         "sat_view": (coords) => {
             const loc = coords || "Kadayanallur,India";
             const iframe = document.createElement('iframe');
-            iframe.src = `https://www.google.com/maps?q=${loc}&output=embed&t=k`;
+            // FIX: Using the proper open-embed endpoint to bypass X-Frame-Options blocking
+            iframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(loc)}&t=k&z=15&ie=UTF8&iwloc=&output=embed`;
             iframe.style.width = "100%";
             iframe.style.height = "300px";
             iframe.style.border = "2px solid #7b00ff";
